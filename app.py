@@ -1,9 +1,12 @@
 import streamlit as st
 import pandas as pd
 import json
+import openai
+import anthropic
+import google.generativeai as genai
 
 # 기본 타이틀 설정
-st.title("성격 평가 테스트")
+st.title("LLM Big 5 Test")
 
 # JSON 파일들 로드
 try:
@@ -20,90 +23,101 @@ except json.JSONDecodeError as e:
     st.error(f"JSON 파일 파싱 오류: {str(e)}")
     st.stop()
 
-# LLM 선택 버튼
-llm_choice = st.radio("LLM 선택", ("GPT-40", "Claude Sonnet 3.5", "Gemini Pro"))
+# LLM 선택 및 설정
+llm_choice = st.radio("LLM 선택", ("GPT-4", "Claude 3", "Gemini Pro"))
 
-# 세션 스테이트 초기화
-if 'current_persona' not in st.session_state:
-    st.session_state.current_persona = 0
-if 'test_phase' not in st.session_state:
-    st.session_state.test_phase = 'IPIP'  # 'IPIP' 또는 'BFI'
-if 'all_scores' not in st.session_state:
-    st.session_state.all_scores = {}
+# API 키 설정
+if llm_choice == "GPT-4":
+    api_key = st.secrets["OPENAI_API_KEY"]
+    openai.api_key = api_key
+elif llm_choice == "Claude 3":
+    api_key = st.secrets["ANTHROPIC_API_KEY"]
+    client = anthropic.Anthropic(api_key=api_key)
+else:  # Gemini Pro
+    api_key = st.secrets["GOOGLE_API_KEY"]
+    genai.configure(api_key=api_key)
 
-# 현재 페르소나 표시
-st.write(f"### 현재 페르소나 {st.session_state.current_persona + 1}/50")
-st.write("### 페르소나 특성:")
-for trait in personas[st.session_state.current_persona]["personality"]:
-    st.write(f"- {trait}")
-
-# 현재 테스트 단계 표시
-st.write(f"### 현재 테스트: {st.session_state.test_phase}")
-
-# 현재 테스트에 따른 질문 설정
-if st.session_state.test_phase == 'IPIP':
-    questions = ipip_questions['items']  # IPIP 질문은 'items' 키 안에 있음
-else:
-    questions = bfi_questions  # BFI는 바로 배열임
-
-# 점수 입력 폼
-scores = {}
-with st.form(key=f'test_form_{st.session_state.current_persona}_{st.session_state.test_phase}'):
-    for question in questions:
-        if st.session_state.test_phase == 'IPIP':
-            question_text = question['item']  # IPIP는 'item' 필드 사용
-        else:
-            question_text = question['question']  # BFI는 'question' 필드 사용
+def get_llm_response(persona, questions, test_type):
+    """LLM을 사용하여 페르소나의 테스트 응답을 생성"""
+    
+    # 프롬프트 구성
+    prompt = f"""
+    Given the following persona characteristics:
+    {', '.join(persona['personality'])}
+    
+    Please rate each of the following {test_type} questions on a scale of 1-5 
+    (1=strongly disagree, 2=disagree, 3=neutral, 4=agree, 5=strongly agree)
+    
+    Respond in the following JSON format:
+    {{
+        "responses": [
+            {{"question": "question_text", "score": score}},
+            ...
+        ]
+    }}
+    
+    Questions:
+    {[q['item'] if test_type == 'IPIP' else q['question'] for q in questions]}
+    """
+    
+    try:
+        if llm_choice == "GPT-4":
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return json.loads(response.choices[0].message.content)
+        
+        elif llm_choice == "Claude 3":
+            response = client.messages.create(
+                model="claude-3-sonnet-20240229",
+                max_tokens=1000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return json.loads(response.content[0].text)
+        
+        else:  # Gemini Pro
+            model = genai.GenerativeModel('gemini-pro')
+            response = model.generate_content(prompt)
+            return json.loads(response.text)
             
-        score = st.slider(
-            question_text,
-            min_value=1,
-            max_value=5,
-            value=3,
-            help="1=매우 그렇지 않다, 2=그렇지 않다, 3=보통이다, 4=그렇다, 5=매우 그렇다"
-        )
-        scores[question_text] = score
-    
-    submit_button = st.form_submit_button("다음")
+    except Exception as e:
+        st.error(f"LLM API 오류: {str(e)}")
+        return None
 
-# 폼 제출 처리
-if submit_button:
-    # 현재 점수 저장
-    persona_key = f"persona_{st.session_state.current_persona + 1}"
-    if persona_key not in st.session_state.all_scores:
-        st.session_state.all_scores[persona_key] = {}
-    st.session_state.all_scores[persona_key][st.session_state.test_phase] = scores
+# 테스트 실행 버튼
+if st.button("테스트 시작"):
+    all_results = {}
+    progress_bar = st.progress(0)
     
-    # 다음 단계로 이동
-    if st.session_state.test_phase == 'IPIP':
-        st.session_state.test_phase = 'BFI'
-    else:
-        st.session_state.test_phase = 'IPIP'
-        st.session_state.current_persona += 1
+    for i, persona in enumerate(personas):
+        st.write(f"### 페르소나 {i+1}/50 처리 중...")
+        
+        # IPIP 테스트
+        ipip_responses = get_llm_response(persona, ipip_questions['items'], 'IPIP')
+        
+        # BFI 테스트
+        bfi_responses = get_llm_response(persona, bfi_questions, 'BFI')
+        
+        # 결과 저장
+        all_results[f"persona_{i+1}"] = {
+            "personality": persona['personality'],
+            "IPIP_responses": ipip_responses,
+            "BFI_responses": bfi_responses
+        }
+        
+        # 진행률 업데이트
+        progress_bar.progress((i + 1) / len(personas))
     
-    # 모든 테스트가 완료되었는지 확인
-    if st.session_state.current_persona >= len(personas):
-        st.write("### 모든 테스트가 완료되었습니다!")
-        
-        # 결과 다운로드 버튼
-        results_df = pd.DataFrame.from_dict(st.session_state.all_scores, orient='index')
-        st.download_button(
-            label="결과 다운로드 (CSV)",
-            data=results_df.to_csv(index=True),
-            file_name="personality_test_results.csv",
-            mime="text/csv"
-        )
-        
-        # 세션 초기화 버튼
-        if st.button("테스트 다시 시작"):
-            st.session_state.current_persona = 0
-            st.session_state.test_phase = 'IPIP'
-            st.session_state.all_scores = {}
-            st.experimental_rerun()
-    else:
-        st.experimental_rerun()
-
-# 진행 상황 표시
-progress = (st.session_state.current_persona * 2 + (1 if st.session_state.test_phase == 'BFI' else 0)) / (len(personas) * 2)
-st.progress(progress)
-st.write(f"진행률: {progress*100:.1f}%")
+    # 결과를 CSV로 변환
+    results_df = pd.DataFrame.from_dict(all_results, orient='index')
+    
+    # 결과 다운로드 버튼
+    st.download_button(
+        label="결과 다운로드 (CSV)",
+        data=results_df.to_csv(index=True),
+        file_name="personality_test_results.csv",
+        mime="text/csv"
+    )
+    
+    st.success("모든 테스트가 완료되었습니다!")
