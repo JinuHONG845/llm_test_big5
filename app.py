@@ -155,7 +155,7 @@ Questions to rate:
 if st.button("테스트 시작"):
     all_results = {}
     
-    # 빈 데���터프레임 초기화
+    # 빈 데이터프레임 초기화
     ipip_df = pd.DataFrame(
         np.nan, 
         index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
@@ -172,36 +172,32 @@ if st.button("테스트 시작"):
     ipip_df_full = ipip_df.copy()
     bfi_df_full = bfi_df.copy()
     
-    # 2개의 열로 레이아웃 구성
-    col1, col2 = st.columns(2)
+    # 세로로 배치
+    st.write("### IPIP Test 결과")
+    ipip_table = st.empty()
+    ipip_table.dataframe(
+        ipip_df.fillna(0).round().astype(int).style
+            .background_gradient(cmap='YlOrRd')
+            .format("{:d}")
+            .set_properties(**{'width': '40px'})
+            .set_table_styles([
+                {'selector': 'table', 'props': [('width', '100%')]},
+            ]),
+        use_container_width=True
+    )
     
-    with col1:
-        st.write("### IPIP Test 결과")
-        ipip_table = st.empty()
-        ipip_table.dataframe(
-            ipip_df.fillna(0).round().astype(int).style
-                .background_gradient(cmap='YlOrRd')
-                .format("{:d}")
-                .set_properties(**{'width': '40px'})
-                .set_table_styles([
-                    {'selector': 'table', 'props': [('width', '100%')]},
-                ]),
-            use_container_width=True
-        )
-    
-    with col2:
-        st.write("### BFI Test 결과")
-        bfi_table = st.empty()
-        bfi_table.dataframe(
-            bfi_df.fillna(0).round().astype(int).style
-                .background_gradient(cmap='YlOrRd')
-                .format("{:d}")
-                .set_properties(**{'width': '40px'})
-                .set_table_styles([
-                    {'selector': 'table', 'props': [('width', '100%')]},
-                ]),
-            use_container_width=True
-        )
+    st.write("### BFI Test 결과")
+    bfi_table = st.empty()
+    bfi_table.dataframe(
+        bfi_df.fillna(0).round().astype(int).style
+            .background_gradient(cmap='YlOrRd')
+            .format("{:d}")
+            .set_properties(**{'width': '40px'})
+            .set_table_styles([
+                {'selector': 'table', 'props': [('width', '100%')]},
+            ]),
+        use_container_width=True
+    )
     
     for i, persona in enumerate(personas):
         # IPIP 테스트 (300개 질문을 50개씩 나누어 처리)
