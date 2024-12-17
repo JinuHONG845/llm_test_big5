@@ -6,6 +6,24 @@ import openai
 import anthropic
 import google.generativeai as genai
 
+# 페이지 설정
+st.set_page_config(layout="wide", page_title="LLM Big 5 Test")
+
+# 여백 줄이기
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 0rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .element-container {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # 기본 타이틀 설정
 st.title("LLM Big 5 Test")
 
@@ -133,42 +151,48 @@ if st.button("테스트 시작"):
     ipip_df = pd.DataFrame(
         np.nan, 
         index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
-        columns=[f"Q{i+1}" for i in range(300)]  # IPIP 300개 질문
+        columns=[f"Q{i+1}" for i in range(300)]
     )
     
     bfi_df = pd.DataFrame(
         np.nan, 
         index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
-        columns=[f"Q{i+1}" for i in range(44)]  # BFI 44개 질문
+        columns=[f"Q{i+1}" for i in range(44)]
     )
     
-    # CSV 저장용 데이터프레임
+    # CSV 저장용 데이터프레임 (소수점 유지)
     ipip_df_full = ipip_df.copy()
     bfi_df_full = bfi_df.copy()
     
-    # 초기 테이블 표시
-    st.write("### IPIP Test 결과 (실시간 업데이트)")
-    ipip_table = st.empty()
-    ipip_table.dataframe(
-        ipip_df.style
-            .background_gradient(cmap='YlOrRd')
-            .format("{:.1f}")
-            .set_properties(**{'width': '70px'})
-    )
+    # 2개의 열로 레이아웃 구성
+    col1, col2 = st.columns(2)
     
-    st.write("### BFI Test 결과 (실시간 업데이트)")
-    bfi_table = st.empty()
-    bfi_table.dataframe(
-        bfi_df.style
-            .background_gradient(cmap='YlOrRd')
-            .format("{:.1f}")
-            .set_properties(**{'width': '70px'})
-    )
+    with col1:
+        st.write("### IPIP Test 결과")
+        ipip_table = st.empty()
+        # 화면에는 정수로 표시
+        ipip_table.dataframe(
+            ipip_df.style
+                .background_gradient(cmap='YlOrRd')
+                .format("{:.0f}")  # 정수로 표시
+                .set_properties(**{'width': '50px'})  # 열 너비 줄임
+        )
+    
+    with col2:
+        st.write("### BFI Test 결과")
+        bfi_table = st.empty()
+        # 화면에는 정수로 표시
+        bfi_table.dataframe(
+            bfi_df.style
+                .background_gradient(cmap='YlOrRd')
+                .format("{:.0f}")  # 정수로 표시
+                .set_properties(**{'width': '50px'})  # 열 너비 줄임
+        )
     
     for i, persona in enumerate(personas):
         # IPIP 테스트 (300개 질문을 50개씩 나누어 처리)
         all_ipip_scores = []
-        for j in range(0, 300, 50):  # 50개씩 나누어 처리
+        for j in range(0, 300, 50):
             batch_questions = ipip_questions['items'][j:j+50]
             ipip_responses = get_llm_response(persona, batch_questions, 'IPIP')
             if ipip_responses and 'responses' in ipip_responses:
@@ -181,13 +205,17 @@ if st.button("테스트 시작"):
                 ipip_df.iloc[i] = current_scores
                 ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
                 
+                # CSV용 데이터프레임도 업데이트
+                ipip_df_full.iloc[i] = current_scores
+                ipip_df_full.loc['Average'] = ipip_df_full.iloc[:-1].mean()
+                
                 # 로그 스케일 적용 및 화면 업데이트
                 ipip_df_log = np.log1p(ipip_df) / np.log1p(5) * 5
                 ipip_table.dataframe(
                     ipip_df_log.style
                         .background_gradient(cmap='YlOrRd')
-                        .format("{:.1f}")
-                        .set_properties(**{'width': '70px'})
+                        .format("{:.0f}")  # 정수로 표시
+                        .set_properties(**{'width': '50px'})
                 )
         
         # BFI 테스트
@@ -209,8 +237,8 @@ if st.button("테스트 시작"):
                     bfi_table.dataframe(
                         bfi_df_log.style
                             .background_gradient(cmap='YlOrRd')
-                            .format("{:.1f}")
-                            .set_properties(**{'width': '70px'})
+                            .format("{:.0f}")  # 정수로 표시
+                            .set_properties(**{'width': '50px'})
                     )
             except Exception as e:
                 st.error(f"BFI 점수 처리 중 오류: {str(e)}")
@@ -222,7 +250,7 @@ if st.button("테스트 시작"):
             "BFI_responses": bfi_responses
         }
     
-    # CSV 파일 생성
+    # CSV 파일 생성 (소수점 10자리까지 유지)
     csv_data = pd.concat([
         ipip_df_full.add_prefix('IPIP_Q'),
         bfi_df_full.add_prefix('BFI_Q')
