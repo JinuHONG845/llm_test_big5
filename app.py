@@ -103,7 +103,7 @@ Questions to rate:
                     {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7
+                temperature=1.0
             )
             return json.loads(response.choices[0].message.content)
         
@@ -115,7 +115,7 @@ Questions to rate:
                     {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7
+                temperature=1.0
             )
             return json.loads(response.content[0].text)
         
@@ -124,7 +124,7 @@ Questions to rate:
             response = model.generate_content(
                 prompt,
                 generation_config=genai.types.GenerationConfig(
-                    temperature=0.7
+                    temperature=1.0
                 )
             )
             try:
@@ -224,7 +224,7 @@ if st.button("테스트 시작"):
             try:
                 scores = [r['score'] for r in bfi_responses['responses']]
                 if len(scores) == len(bfi_df.columns):
-                    # 화면 표시용 데이터프레임 업데이트
+                    # 화면 표시용 데이터프레임 업데이���
                     bfi_df.iloc[i] = scores
                     bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                     
