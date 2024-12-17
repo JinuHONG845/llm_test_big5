@@ -155,7 +155,7 @@ Questions to rate:
 if st.button("테스트 시작"):
     all_results = {}
     
-    # 빈 데이터프레임 초기화
+    # 빈 데���터프레임 초기화
     ipip_df = pd.DataFrame(
         np.nan, 
         index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
@@ -179,28 +179,28 @@ if st.button("테스트 시작"):
         st.write("### IPIP Test 결과")
         ipip_table = st.empty()
         ipip_table.dataframe(
-            ipip_df.round().astype(int).style
+            ipip_df.fillna(0).round().astype(int).style
                 .background_gradient(cmap='YlOrRd')
                 .format("{:d}")
-                .set_properties(**{'width': '40px'})  # 열 너비 더 줄임
+                .set_properties(**{'width': '40px'})
                 .set_table_styles([
-                    {'selector': 'table', 'props': [('width', '100%')]},  # 테이블 너비 최대화
+                    {'selector': 'table', 'props': [('width', '100%')]},
                 ]),
-            use_container_width=True  # 컨테이너 너비 최대 사용
+            use_container_width=True
         )
     
     with col2:
         st.write("### BFI Test 결과")
         bfi_table = st.empty()
         bfi_table.dataframe(
-            bfi_df.round().astype(int).style
+            bfi_df.fillna(0).round().astype(int).style
                 .background_gradient(cmap='YlOrRd')
                 .format("{:d}")
-                .set_properties(**{'width': '40px'})  # 열 너비 더 줄임
+                .set_properties(**{'width': '40px'})
                 .set_table_styles([
-                    {'selector': 'table', 'props': [('width', '100%')]},  # 테이블 너비 최대화
+                    {'selector': 'table', 'props': [('width', '100%')]},
                 ]),
-            use_container_width=True  # 컨테이너 너비 최대 사용
+            use_container_width=True
         )
     
     for i, persona in enumerate(personas):
