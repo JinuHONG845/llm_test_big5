@@ -125,81 +125,65 @@ Questions to rate:
         st.write("응답:", response if 'response' in locals() else "No response")
         return None
 
-# 결과를 표시하는 함수 추가
-def display_results(all_results):
-    st.write("### IPIP Test 결과")
-    
-    # IPIP 결과를 위한 데이터프레임 생성
-    ipip_data = []
-    for persona_id in range(1, 51):  # 50개 페르소나
-        persona_key = f"persona_{persona_id}"
-        if persona_key in all_results and 'IPIP_responses' in all_results[persona_key]:
-            responses = all_results[persona_key]['IPIP_responses']['responses']
-            scores = [r['score'] for r in responses]
-            ipip_data.append(scores)
-    
-    # IPIP 데이터프레임 생성
-    ipip_df = pd.DataFrame(ipip_data, 
-                          index=[f"Persona {i+1}" for i in range(50)],
-                          columns=[f"Q{i+1}" for i in range(len(ipip_data[0]))])
-    
-    # 평균 행 추가
-    ipip_df.loc['Average'] = ipip_df.mean()
-    
-    # 로그 스케일 적용 (1-5 범위를 유지하면서)
-    ipip_df_log = np.log1p(ipip_df) / np.log1p(5) * 5
-    
-    # 스타일링된 데이터프레임 표시
-    st.dataframe(
-        ipip_df_log.style
-            .background_gradient(cmap='YlOrRd')
-            .format("{:.2f}")
-            .set_properties(**{'width': '70px'})
-    )
-    
-    st.write("### BFI Test 결과")
-    
-    # BFI 결과를 위한 데이터프레임 생성
-    bfi_data = []
-    for persona_id in range(1, 51):
-        persona_key = f"persona_{persona_id}"
-        if persona_key in all_results and 'BFI_responses' in all_results[persona_key]:
-            responses = all_results[persona_key]['BFI_responses']['responses']
-            scores = [r['score'] for r in responses]
-            bfi_data.append(scores)
-    
-    # BFI 데이터프레임 생성
-    bfi_df = pd.DataFrame(bfi_data,
-                         index=[f"Persona {i+1}" for i in range(50)],
-                         columns=[f"Q{i+1}" for i in range(len(bfi_data[0]))])
-    
-    # 평균 행 추가
-    bfi_df.loc['Average'] = bfi_df.mean()
-    
-    # 로그 스케일 적용
-    bfi_df_log = np.log1p(bfi_df) / np.log1p(5) * 5
-    
-    # 스타일링된 데이터프레임 표시
-    st.dataframe(
-        bfi_df_log.style
-            .background_gradient(cmap='YlOrRd')
-            .format("{:.2f}")
-            .set_properties(**{'width': '70px'})
-    )
-
 # 테스트 실행 버튼
 if st.button("테스트 시작"):
     all_results = {}
-    progress_bar = st.progress(0)
+    
+    # 빈 데이터프레임 초기화
+    ipip_df = pd.DataFrame(
+        np.nan, 
+        index=[f"Persona {i+1}" for i in range(50)] + ['Average'],
+        columns=[f"Q{i+1}" for i in range(len(ipip_questions['items']))]
+    )
+    
+    bfi_df = pd.DataFrame(
+        np.nan, 
+        index=[f"Persona {i+1}" for i in range(50)] + ['Average'],
+        columns=[f"Q{i+1}" for i in range(len(bfi_questions))]
+    )
+    
+    # 결과 표시를 위한 컨테이너 생성
+    ipip_container = st.empty()
+    bfi_container = st.empty()
     
     for i, persona in enumerate(personas):
-        st.write(f"### 페르소나 {i+1}/50 처리 중...")
-        
         # IPIP 테스트
         ipip_responses = get_llm_response(persona, ipip_questions['items'], 'IPIP')
+        if ipip_responses:
+            scores = [r['score'] for r in ipip_responses['responses']]
+            ipip_df.iloc[i] = scores
+            # 평균 업데이트
+            ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
+            
+            # 로그 스케일 적용 및 표시
+            ipip_df_log = np.log1p(ipip_df) / np.log1p(5) * 5
+            with ipip_container.container():
+                st.write("### IPIP Test 결과 (실시간 업데이트)")
+                st.dataframe(
+                    ipip_df_log.style
+                        .background_gradient(cmap='YlOrRd')
+                        .format("{:.2f}")
+                        .set_properties(**{'width': '70px'})
+                )
         
         # BFI 테스트
         bfi_responses = get_llm_response(persona, bfi_questions, 'BFI')
+        if bfi_responses:
+            scores = [r['score'] for r in bfi_responses['responses']]
+            bfi_df.iloc[i] = scores
+            # 평균 업데이트
+            bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
+            
+            # 로그 스케일 적용 및 표시
+            bfi_df_log = np.log1p(bfi_df) / np.log1p(5) * 5
+            with bfi_container.container():
+                st.write("### BFI Test 결과 (실시간 업데이트)")
+                st.dataframe(
+                    bfi_df_log.style
+                        .background_gradient(cmap='YlOrRd')
+                        .format("{:.2f}")
+                        .set_properties(**{'width': '70px'})
+                )
         
         # 결과 저장
         all_results[f"persona_{i+1}"] = {
@@ -207,12 +191,6 @@ if st.button("테스트 시작"):
             "IPIP_responses": ipip_responses,
             "BFI_responses": bfi_responses
         }
-        
-        # 진행률 업데이트
-        progress_bar.progress((i + 1) / len(personas))
-        
-        # 중간 결과 표시
-        display_results(all_results)
     
     # 최종 결과를 CSV로 저장
     results_df = pd.DataFrame.from_dict(all_results, orient='index')
