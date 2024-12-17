@@ -49,25 +49,32 @@ else:  # Gemini Pro
 def get_llm_response(persona, questions, test_type):
     """LLM을 사용하여 페르소나의 테스트 응답을 생성"""
     
+    # 질문 목록 준비
+    if test_type == 'IPIP':
+        question_list = [q['item'] for q in questions]
+    else:
+        question_list = [q['question'] for q in questions]
+    
     # 프롬프트 구성
-    prompt = f"""
-    Given the following persona characteristics:
-    {', '.join(persona['personality'])}
-    
-    Please rate each of the following {test_type} questions on a scale of 1-5 
-    (1=strongly disagree, 2=disagree, 3=neutral, 4=agree, 5=strongly agree)
-    
-    Respond ONLY in the following JSON format without any additional text:
-    {{
-        "responses": [
-            {{"question": "question_text", "score": score}},
-            ...
-        ]
-    }}
-    
-    Questions:
-    {[q['item'] if test_type == 'IPIP' else q['question'] for q in (ipip_questions['items'] if test_type == 'IPIP' else bfi_questions)]}
-    """
+    prompt = f"""Based on this persona: {', '.join(persona['personality'])}
+
+For each question, provide a rating from 1-5 where:
+1 = Strongly Disagree
+2 = Disagree
+3 = Neutral
+4 = Agree
+5 = Strongly Agree
+
+Return ONLY a JSON object in this exact format:
+{{
+    "responses": [
+        {{"question": "<question text>", "score": <1-5>}},
+        ...
+    ]
+}}
+
+Questions to rate:
+{json.dumps(question_list[:50], indent=2)}"""  # 한 번에 50개 질문만 처리
     
     try:
         if llm_choice == "GPT-4":
@@ -76,25 +83,31 @@ def get_llm_response(persona, questions, test_type):
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                temperature=0.7
             )
             return json.loads(response.choices[0].message.content)
         
         elif llm_choice == "Claude 3":
             response = client.messages.create(
                 model="claude-3-sonnet-20240229",
-                max_tokens=1000,
+                max_tokens=2000,
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                temperature=0.7
             )
             return json.loads(response.content[0].text)
         
         else:  # Gemini Pro
             model = genai.GenerativeModel('gemini-pro')
-            response = model.generate_content(prompt)
-            # Gemini의 응답에서 JSON 부분만 추출
+            response = model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.7
+                )
+            )
             try:
                 return json.loads(response.text)
             except:
