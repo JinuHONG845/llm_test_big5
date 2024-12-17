@@ -1,43 +1,45 @@
-{"item":"1. I am someone who Is talkative"}
-{"item":"2. I am someone who Tends to find fault with others"}
-{"item":"3. I am someone who Does a thorough job"}
-{"item":"4. I am someone who Is depressed, blue"}
-{"item":"5. I am someone who  Is reserved"}
-{"item":"6. I am someone who Is helpful and unselfish with others"}
-{"item":"7. I am someone who Can be somewhat careless"}
-{"item":"9. I am someone who Is relaxed, handles stress well.  "}
-{"item":"10. I am someone who Is curious about many different things"}
-{"item":"11. I am someone who Is full of energy"}
-{"item":"12. I am someone who Starts quarrels with others"}
-{"item":"13. I am someone who Is a reliable worker"}
-{"item":"14. I am someone who Can be tense"}
-{"item":"15. I am someone who Is ingenious, a deep thinker"}
-{"item":"16. I am someone who Generates a lot of enthusiasm"}
-{"item":"17. I am someone who Has a forgiving nature"}
-{"item":"18. I am someone who Tends to be disorganized"}
-{"item":"19. I am someone who Worries a lot"}
-{"item":"20. I am someone who Has an active imagination"}
-{"item":"21. I am someone who Tends to be quiet"}
-{"item":"22. I am someone who Is generally trusting"}
-{"item":"23. I am someone who Tends to be lazy"}
-{"item":"24. I am someone who Is emotionally stable, not easily upset"}
-{"item":"25. I am someone who Is inventive"}
-{"item":"26. I am someone who Has an assertive personality"}
-{"item":"27. I am someone who Can be cold and aloof"}
-{"item":"28. I am someone who Perseveres until the task is finished"}
-{"item":"29. I am someone who Can be moody"}
-{"item":"30. I am someone who Values artistic, aesthetic experiences"}
-{"item":"31. I am someone who Is sometimes shy, inhibited"}
-{"item":"32. I am someone who Is considerate and kind to almost everyone"}
-{"item":"33. I am someone who Does things efficiently"}
-{"item":"34. I am someone who Remains calm in tense situations"}
-{"item":"35. I am someone who Prefers work that is routine"}
-{"item":"36. I am someone who Is outgoing, sociable"}
-{"item":"37. I am someone who Is sometimes rude to others"}
-{"item":"38. I am someone who Makes plans and follows through with them"}
-{"item":"39. I am someone who Gets nervous easily"}
-{"item":"40. I am someone who Likes to reflect, play with ideas"}
-{"item":"41. I am someone who Has few artistic interests"}
-{"item":"42. I am someone who Likes to cooperate with others"}
-{"item":"43. I am someone who Is easily distracted"}
-{"item":"44. I am someone who Is sophisticated in art, music, or literature"}
+[
+  {"item": "1. I am someone who Is talkative"},
+  {"item": "2. I am someone who Tends to find fault with others"},
+  {"item": "3. I am someone who Does a thorough job"},
+  {"item": "4. I am someone who Is depressed, blue"},
+  {"item": "5. I am someone who Is reserved"},
+  {"item": "6. I am someone who Is helpful and unselfish with others"},
+  {"item": "7. I am someone who Can be somewhat careless"},
+  {"item": "9. I am someone who Is relaxed, handles stress well"},
+  {"item": "10. I am someone who Is curious about many different things"},
+  {"item": "11. I am someone who Is full of energy"},
+  {"item": "12. I am someone who Starts quarrels with others"},
+  {"item": "13. I am someone who Is a reliable worker"},
+  {"item": "14. I am someone who Can be tense"},
+  {"item": "15. I am someone who Is ingenious, a deep thinker"},
+  {"item": "16. I am someone who Generates a lot of enthusiasm"},
+  {"item": "17. I am someone who Has a forgiving nature"},
+  {"item": "18. I am someone who Tends to be disorganized"},
+  {"item": "19. I am someone who Worries a lot"},
+  {"item": "20. I am someone who Has an active imagination"},
+  {"item": "21. I am someone who Tends to be quiet"},
+  {"item": "22. I am someone who Is generally trusting"},
+  {"item": "23. I am someone who Tends to be lazy"},
+  {"item": "24. I am someone who Is emotionally stable, not easily upset"},
+  {"item": "25. I am someone who Is inventive"},
+  {"item": "26. I am someone who Has an assertive personality"},
+  {"item": "27. I am someone who Can be cold and aloof"},
+  {"item": "28. I am someone who Perseveres until the task is finished"},
+  {"item": "29. I am someone who Can be moody"},
+  {"item": "30. I am someone who Values artistic, aesthetic experiences"},
+  {"item": "31. I am someone who Is sometimes shy, inhibited"},
+  {"item": "32. I am someone who Is considerate and kind to almost everyone"},
+  {"item": "33. I am someone who Does things efficiently"},
+  {"item": "34. I am someone who Remains calm in tense situations"},
+  {"item": "35. I am someone who Prefers work that is routine"},
+  {"item": "36. I am someone who Is outgoing, sociable"},
+  {"item": "37. I am someone who Is sometimes rude to others"},
+  {"item": "38. I am someone who Makes plans and follows through with them"},
+  {"item": "39. I am someone who Gets nervous easily"},
+  {"item": "40. I am someone who Likes to reflect, play with ideas"},
+  {"item": "41. I am someone who Has few artistic interests"},
+  {"item": "42. I am someone who Likes to cooperate with others"},
+  {"item": "43. I am someone who Is easily distracted"},
+  {"item": "44. I am someone who Is sophisticated in art, music, or literature"}
+]
