@@ -9,17 +9,25 @@ import google.generativeai as genai
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="LLM Big 5 Test")
 
-# 여백 줄이기
+# 여백 줄소화를 위한 CSS
 st.markdown("""
     <style>
         .block-container {
             padding-top: 1rem;
             padding-bottom: 0rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
+            padding-left: 0rem;
+            padding-right: 0rem;
+            max-width: 100rem;  /* 최대 너비 증가 */
         }
         .element-container {
             margin-bottom: 0.5rem;
+        }
+        .stDataFrame {
+            width: 100%;  /* 데이터프레임 너비 최대화 */
+        }
+        div[data-testid="stHorizontalBlock"] > div {
+            width: 100%;  /* 컬럼 너비 최대화 */
+            padding: 0rem 0.2rem;  /* 컬럼 간 여백 최소화 */
         }
     </style>
 """, unsafe_allow_html=True)
@@ -170,23 +178,29 @@ if st.button("테스트 시작"):
     with col1:
         st.write("### IPIP Test 결과")
         ipip_table = st.empty()
-        # 화면에는 정수로 표시
         ipip_table.dataframe(
-            ipip_df.style
+            ipip_df.round().astype(int).style
                 .background_gradient(cmap='YlOrRd')
-                .format("{:.0f}")  # 정수로 표시
-                .set_properties(**{'width': '50px'})  # 열 너비 줄임
+                .format("{:d}")
+                .set_properties(**{'width': '40px'})  # 열 너비 더 줄임
+                .set_table_styles([
+                    {'selector': 'table', 'props': [('width', '100%')]},  # 테이블 너비 최대화
+                ]),
+            use_container_width=True  # 컨테이너 너비 최대 사용
         )
     
     with col2:
         st.write("### BFI Test 결과")
         bfi_table = st.empty()
-        # 화면에는 정수로 표시
         bfi_table.dataframe(
-            bfi_df.style
+            bfi_df.round().astype(int).style
                 .background_gradient(cmap='YlOrRd')
-                .format("{:.0f}")  # 정수로 표시
-                .set_properties(**{'width': '50px'})  # 열 너비 줄임
+                .format("{:d}")
+                .set_properties(**{'width': '40px'})  # 열 너비 더 줄임
+                .set_table_styles([
+                    {'selector': 'table', 'props': [('width', '100%')]},  # 테이블 너비 최대화
+                ]),
+            use_container_width=True  # 컨테이너 너비 최대 사용
         )
     
     for i, persona in enumerate(personas):
@@ -224,7 +238,7 @@ if st.button("테스트 시작"):
             try:
                 scores = [r['score'] for r in bfi_responses['responses']]
                 if len(scores) == len(bfi_df.columns):
-                    # 화면 표시용 데이터프레임 업데이���
+                    # 화면 표시용 데이터프레임 업데이트
                     bfi_df.iloc[i] = scores
                     bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                     
