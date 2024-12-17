@@ -41,13 +41,20 @@ for trait in personas[st.session_state.current_persona]["personality"]:
 st.write(f"### 현재 테스트: {st.session_state.test_phase}")
 
 # 현재 테스트에 따른 질문 설정
-questions = ipip_questions if st.session_state.test_phase == 'IPIP' else bfi_questions
+if st.session_state.test_phase == 'IPIP':
+    questions = ipip_questions['items']  # IPIP 질문은 'items' 키 안에 있음
+else:
+    questions = bfi_questions  # BFI는 바로 배열임
 
 # 점수 입력 폼
 scores = {}
 with st.form(key=f'test_form_{st.session_state.current_persona}_{st.session_state.test_phase}'):
     for question in questions:
-        question_text = question.get('item', question.get('question', ''))
+        if st.session_state.test_phase == 'IPIP':
+            question_text = question['item']  # IPIP는 'item' 필드 사용
+        else:
+            question_text = question['question']  # BFI는 'question' 필드 사용
+            
         score = st.slider(
             question_text,
             min_value=1,
