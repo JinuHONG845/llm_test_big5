@@ -146,9 +146,24 @@ if st.button("테스트 시작"):
     ipip_df_full = ipip_df.copy()
     bfi_df_full = bfi_df.copy()
     
-    # 결과 표시를 위한 컨테이너 생성
-    ipip_container = st.empty()
-    bfi_container = st.empty()
+    # 초기 테이블 표시
+    st.write("### IPIP Test 결과 (실시간 업데이트)")
+    ipip_table = st.empty()
+    ipip_table.dataframe(
+        ipip_df.style
+            .background_gradient(cmap='YlOrRd')
+            .format("{:.1f}")
+            .set_properties(**{'width': '70px'})
+    )
+    
+    st.write("### BFI Test 결과 (실시간 업데이트)")
+    bfi_table = st.empty()
+    bfi_table.dataframe(
+        bfi_df.style
+            .background_gradient(cmap='YlOrRd')
+            .format("{:.1f}")
+            .set_properties(**{'width': '70px'})
+    )
     
     for i, persona in enumerate(personas):
         # IPIP 테스트 (300개 질문을 50개씩 나누어 처리)
@@ -159,29 +174,21 @@ if st.button("테스트 시작"):
             if ipip_responses and 'responses' in ipip_responses:
                 scores = [r['score'] for r in ipip_responses['responses']]
                 all_ipip_scores.extend(scores)
-        
-        if len(all_ipip_scores) == 300:  # 모든 IPIP 응답이 수집되었는지 확인
-            try:
-                # 화면 표시용 데이터프레임 업데이트
-                ipip_df.iloc[i] = all_ipip_scores
+                
+                # 부분 결과 업데이트
+                current_scores = ipip_df.iloc[i].copy()
+                current_scores[j:j+len(scores)] = scores
+                ipip_df.iloc[i] = current_scores
                 ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
                 
-                # CSV 저장용 데이터프레임 업데이트
-                ipip_df_full.iloc[i] = all_ipip_scores
-                ipip_df_full.loc['Average'] = ipip_df_full.iloc[:-1].mean()
-                
-                # 로그 스케일 적용 및 화면 표시
+                # 로그 스케일 적용 및 화면 업데이트
                 ipip_df_log = np.log1p(ipip_df) / np.log1p(5) * 5
-                with ipip_container.container():
-                    st.write("### IPIP Test 결과 (실시간 업데이트)")
-                    st.dataframe(
-                        ipip_df_log.style
-                            .background_gradient(cmap='YlOrRd')
-                            .format("{:.1f}")
-                            .set_properties(**{'width': '70px'})
-                    )
-            except Exception as e:
-                st.error(f"IPIP 점수 처리 중 오류: {str(e)}")
+                ipip_table.dataframe(
+                    ipip_df_log.style
+                        .background_gradient(cmap='YlOrRd')
+                        .format("{:.1f}")
+                        .set_properties(**{'width': '70px'})
+                )
         
         # BFI 테스트
         bfi_responses = get_llm_response(persona, bfi_questions[:44], 'BFI')
@@ -197,23 +204,21 @@ if st.button("테스트 시작"):
                     bfi_df_full.iloc[i] = scores
                     bfi_df_full.loc['Average'] = bfi_df_full.iloc[:-1].mean()
                     
-                    # 로그 스케일 적용 및 화면 표시
+                    # 로그 스케일 적용 및 화면 업데이트
                     bfi_df_log = np.log1p(bfi_df) / np.log1p(5) * 5
-                    with bfi_container.container():
-                        st.write("### BFI Test 결과 (실시간 업데이트)")
-                        st.dataframe(
-                            bfi_df_log.style
-                                .background_gradient(cmap='YlOrRd')
-                                .format("{:.1f}")  # 화면에는 소수점 1자리까지만 표시
-                                .set_properties(**{'width': '70px'})
-                        )
+                    bfi_table.dataframe(
+                        bfi_df_log.style
+                            .background_gradient(cmap='YlOrRd')
+                            .format("{:.1f}")
+                            .set_properties(**{'width': '70px'})
+                    )
             except Exception as e:
                 st.error(f"BFI 점수 처리 중 오류: {str(e)}")
         
         # 결과 저장
         all_results[f"persona_{i+1}"] = {
             "personality": persona['personality'],
-            "IPIP_responses": ipip_responses,
+            "IPIP_responses": {"responses": [{"score": s} for s in all_ipip_scores]} if all_ipip_scores else None,
             "BFI_responses": bfi_responses
         }
     
@@ -223,7 +228,7 @@ if st.button("테스트 시작"):
         bfi_df_full.add_prefix('BFI_Q')
     ], axis=1)
     
-    # 결과 다운로드 버튼 (10자리 소수점까지 저장)
+    # 결과 다운로드 버튼
     st.download_button(
         label="결과 다운로드 (CSV)",
         data=csv_data.to_csv(index=True, float_format='%.10f'),
