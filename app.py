@@ -28,13 +28,22 @@ llm_choice = st.radio("LLM 선택", ("GPT-4", "Claude 3", "Gemini Pro"))
 
 # API 키 설정
 if llm_choice == "GPT-4":
-    api_key = st.secrets["OPENAI_API_KEY"]
+    api_key = st.secrets.get("OPENAI_API_KEY")
+    if not api_key:
+        st.error("OpenAI API 키가 설정되지 않았습니다.")
+        st.stop()
     openai.api_key = api_key
 elif llm_choice == "Claude 3":
-    api_key = st.secrets["ANTHROPIC_API_KEY"]
+    api_key = st.secrets.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        st.error("Anthropic API 키가 설정되지 않았습니다.")
+        st.stop()
     client = anthropic.Anthropic(api_key=api_key)
 else:  # Gemini Pro
-    api_key = st.secrets["GOOGLE_API_KEY"]
+    api_key = st.secrets.get("GOOGLE_API_KEY")
+    if not api_key:
+        st.error("Google API 키가 설정되지 않았습니다.")
+        st.stop()
     genai.configure(api_key=api_key)
 
 def get_llm_response(persona, questions, test_type):
