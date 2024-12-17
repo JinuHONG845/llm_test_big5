@@ -57,7 +57,7 @@ def get_llm_response(persona, questions, test_type):
     Please rate each of the following {test_type} questions on a scale of 1-5 
     (1=strongly disagree, 2=disagree, 3=neutral, 4=agree, 5=strongly agree)
     
-    Respond in the following JSON format:
+    Respond ONLY in the following JSON format without any additional text:
     {{
         "responses": [
             {{"question": "question_text", "score": score}},
@@ -66,14 +66,17 @@ def get_llm_response(persona, questions, test_type):
     }}
     
     Questions:
-    {[q['item'] if test_type == 'IPIP' else q['question'] for q in questions]}
+    {[q['item'] if test_type == 'IPIP' else q['question'] for q in (ipip_questions['items'] if test_type == 'IPIP' else bfi_questions)]}
     """
     
     try:
         if llm_choice == "GPT-4":
             response = openai.ChatCompletion.create(
                 model="gpt-4",
-                messages=[{"role": "user", "content": prompt}]
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
+                    {"role": "user", "content": prompt}
+                ]
             )
             return json.loads(response.choices[0].message.content)
         
@@ -81,17 +84,31 @@ def get_llm_response(persona, questions, test_type):
             response = client.messages.create(
                 model="claude-3-sonnet-20240229",
                 max_tokens=1000,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
+                    {"role": "user", "content": prompt}
+                ]
             )
             return json.loads(response.content[0].text)
         
         else:  # Gemini Pro
             model = genai.GenerativeModel('gemini-pro')
             response = model.generate_content(prompt)
-            return json.loads(response.text)
+            # Gemini의 응답에서 JSON 부분만 추출
+            try:
+                return json.loads(response.text)
+            except:
+                # JSON 형식이 아닌 경우 응답에서 JSON 부분만 추출 시도
+                import re
+                json_str = re.search(r'\{.*\}', response.text, re.DOTALL)
+                if json_str:
+                    return json.loads(json_str.group())
+                raise Exception("Invalid JSON response")
             
     except Exception as e:
         st.error(f"LLM API 오류: {str(e)}")
+        st.write("프롬프트:", prompt)
+        st.write("응답:", response if 'response' in locals() else "No response")
         return None
 
 # 테스트 실행 버튼
