@@ -80,3 +80,11 @@ except FileNotFoundError as e:
     st.error(f"필요한 JSON 파일을 찾을 수 없습니다: {str(e)}")
 except Exception as e:
     st.error(f"오류가 발생했습니다: {str(e)}")
+
+# JSON 파일 테스트
+try:
+    with open('BFI.json', 'r') as f:
+        data = json.load(f)
+    print("JSON 파일이 올바르게 로드되었습니다.")
+except json.JSONDecodeError as e:
+    print(f"JSON 파싱 오류: {str(e)}")
