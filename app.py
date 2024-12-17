@@ -9,25 +9,31 @@ import google.generativeai as genai
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="LLM Big 5 Test")
 
-# 여백 줄소화를 위한 CSS
+# 여백 줄정을 위한 CSS
 st.markdown("""
     <style>
         .block-container {
             padding-top: 1rem;
-            padding-bottom: 0rem;
-            padding-left: 0rem;
-            padding-right: 0rem;
-            max-width: 100rem;  /* 최대 너비 증가 */
+            padding-bottom: 1rem;
+            padding-left: 3rem;  /* 좌측 여백 증가 */
+            padding-right: 3rem;  /* 우측 여백 증가 */
+            max-width: 100rem;
         }
         .element-container {
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
         }
         .stDataFrame {
-            width: 100%;  /* 데이터프레임 너비 최대화 */
+            width: 100%;
         }
-        div[data-testid="stHorizontalBlock"] > div {
-            width: 100%;  /* 컬럼 너비 최대화 */
-            padding: 0rem 0.2rem;  /* 컬럼 간 여백 최소화 */
+        /* 테이블 헤더와 내용 사이 간격 */
+        .dataframe {
+            margin-top: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        /* 제목과 테이블 사이 간격 */
+        h3 {
+            margin-top: 1.5rem !important;
+            margin-bottom: 1rem !important;
         }
     </style>
 """, unsafe_allow_html=True)
