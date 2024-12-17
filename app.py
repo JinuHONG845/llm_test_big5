@@ -9,26 +9,24 @@ claude_api_key = st.secrets["CLAUDE_API_KEY"]
 gemini_api_key = st.secrets["GEMINI_API_KEY"]
 
 # JSON 파일 로드
-with open('persona.json', 'r') as f:
-    personas = json.load(f)
+def load_json(file_name):
+    with open(file_name, 'r') as f:
+        return json.load(f)
 
-with open('ipip.json', 'r') as f:
-    ipip_questions = json.load(f)
-
-with open('bif.json', 'r') as f:
-    bif_questions = json.load(f)
+personas = load_json('persona.json')
+ipip_questions = load_json('ipip.json')
+bif_questions = load_json('bif.json')
 
 # LLM 선택 버튼
 st.title("Big5 성격 평가")
 llm_choice = st.radio("LLM 선택", ("GPT-40", "Claude Sonnet 3.5", "Gemini Pro"))
 
 # LLM에 따라 API 키 선택
-if llm_choice == "GPT-40":
-    api_key = gpt40_api_key
-elif llm_choice == "Claude Sonnet 3.5":
-    api_key = claude_api_key
-else:
-    api_key = gemini_api_key
+api_key = {
+    "GPT-40": gpt40_api_key,
+    "Claude Sonnet 3.5": claude_api_key,
+    "Gemini Pro": gemini_api_key
+}[llm_choice]
 
 # 점수 저장을 위한 데이터프레임 초기화
 ipip_df = pd.DataFrame(columns=[f"Persona {i+1}" for i in range(len(personas))])
@@ -39,12 +37,10 @@ for idx, persona in enumerate(personas):
     st.header(f"Persona {idx+1}: {persona['name']}")
     
     # IPIP 점수 표출
-    st.subheader("IPIP 점수")
     ipip_scores = {q['question']: st.slider(q['question'], 1, 5) for q in ipip_questions}
     ipip_df[f"Persona {idx+1}"] = list(ipip_scores.values())
     
     # BIF 점수 표출
-    st.subheader("BIF 점수")
     bif_scores = {q['question']: st.slider(q['question'], 1, 5) for q in bif_questions}
     bif_df[f"Persona {idx+1}"] = list(bif_scores.values())
 
@@ -57,4 +53,27 @@ st.dataframe(bif_df)
 
 # Gemini API 호출 함수
 def call_gemini_api(api_key, persona, ipip_scores, bif_scores):
-    url = "https://api.gemini.com/v1/your-endpoint"  # 실제 엔
+    url = "https://api.gemini.com/v1/your-endpoint"  # 실제 엔드포인트로 변경하세요
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "persona": persona,
+        "ipip_scores": ipip_scores,
+        "bif_scores": bif_scores
+    }
+    response = requests.post(url, headers=headers, json=data)
+    
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error(f"Error: {response.status_code} - {response.text}")
+        return None
+
+# 결과 확인 버튼
+if st.button("결과 확인"):
+    for idx, persona in enumerate(personas):
+        result = call_gemini_api(api_key, persona, ipip_df[f"Persona {idx+1}"].to_dict(), bif_df[f"Persona {idx+1}"].to_dict())
+        if result:
+            st.write(f"Persona {idx+1} 결과: {result}")
