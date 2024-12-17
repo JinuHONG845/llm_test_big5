@@ -1,0 +1,2404 @@
+{
+    "items": [
+      {
+        "full_number": 1,
+        "short_number": 1,
+        "sign": "+N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Worry about things."
+      },
+      {
+        "full_number": 2,
+        "short_number": 2,
+        "sign": "+E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Make friends easily."
+      },
+      {
+        "full_number": 3,
+        "short_number": 3,
+        "sign": "+O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Have a vivid imagination."
+      },
+      {
+        "full_number": 4,
+        "short_number": 4,
+        "sign": "+A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Trust others."
+      },
+      {
+        "full_number": 5,
+        "short_number": 5,
+        "sign": "+C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Complete tasks successfully."
+      },
+      {
+        "full_number": 6,
+        "short_number": 6,
+        "sign": "+N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Get angry easily."
+      },
+      {
+        "full_number": 7,
+        "short_number": 7,
+        "sign": "+E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Love large parties."
+      },
+      {
+        "full_number": 8,
+        "short_number": 8,
+        "sign": "+O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "Believe in the importance of art."
+      },
+      {
+        "full_number": 9,
+        "short_number": null,
+        "sign": "+A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Would never cheat on my taxes."
+      },
+      {
+        "full_number": 10,
+        "short_number": null,
+        "sign": "+C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Like order."
+      },
+      {
+        "full_number": 11,
+        "short_number": 11,
+        "sign": "+N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Often feel blue."
+      },
+      {
+        "full_number": 12,
+        "short_number": 12,
+        "sign": "+E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Take charge."
+      },
+      {
+        "full_number": 13,
+        "short_number": 13,
+        "sign": "+O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Experience my emotions intensely."
+      },
+      {
+        "full_number": 14,
+        "short_number": null,
+        "sign": "+A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Make people feel welcome."
+      },
+      {
+        "full_number": 15,
+        "short_number": null,
+        "sign": "+C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Try to follow the rules."
+      },
+      {
+        "full_number": 16,
+        "short_number": null,
+        "sign": "+N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Am easily intimidated."
+      },
+      {
+        "full_number": 17,
+        "short_number": 17,
+        "sign": "+E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "Am always busy."
+      },
+      {
+        "full_number": 18,
+        "short_number": 18,
+        "sign": "+O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Prefer variety to routine."
+      },
+      {
+        "full_number": 19,
+        "short_number": null,
+        "sign": "+A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Am easy to satisfy."
+      },
+      {
+        "full_number": 20,
+        "short_number": null,
+        "sign": "+C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Go straight for the goal."
+      },
+      {
+        "full_number": 21,
+        "short_number": null,
+        "sign": "+N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Often eat too much."
+      },
+      {
+        "full_number": 22,
+        "short_number": 22,
+        "sign": "+E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Love excitement."
+      },
+      {
+        "full_number": 23,
+        "short_number": null,
+        "sign": "+O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Like to solve complex problems."
+      },
+      {
+        "full_number": 24,
+        "short_number": null,
+        "sign": "+A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Dislike being the center of attention."
+      },
+      {
+        "full_number": 25,
+        "short_number": null,
+        "sign": "+C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Get chores done right away."
+      },
+      {
+        "full_number": 26,
+        "short_number": 26,
+        "sign": "+N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Panic easily."
+      },
+      {
+        "full_number": 27,
+        "short_number": 27,
+        "sign": "+E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Radiate joy."
+      },
+      {
+        "full_number": 28,
+        "short_number": 28,
+        "sign": "+O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Tend to vote for liberal political candidates."
+      },
+      {
+        "full_number": 29,
+        "short_number": 29,
+        "sign": "+A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Sympathize with the homeless."
+      },
+      {
+        "full_number": 30,
+        "short_number": null,
+        "sign": "+C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Avoid mistakes."
+      },
+      {
+        "full_number": 31,
+        "short_number": 31,
+        "sign": "+N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Fear for the worst."
+      },
+      {
+        "full_number": 32,
+        "short_number": null,
+        "sign": "+E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Warm up quickly to others."
+      },
+      {
+        "full_number": 33,
+        "short_number": 33,
+        "sign": "+O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Enjoy wild flights of fantasy."
+      },
+      {
+        "full_number": 34,
+        "short_number": 34,
+        "sign": "+A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Believe that others have good intentions."
+      },
+      {
+        "full_number": 35,
+        "short_number": 35,
+        "sign": "+C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Excel in what I do."
+      },
+      {
+        "full_number": 36,
+        "short_number": 36,
+        "sign": "+N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Get irritated easily."
+      },
+      {
+        "full_number": 37,
+        "short_number": 37,
+        "sign": "+E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Talk to a lot of different people at parties."
+      },
+      {
+        "full_number": 38,
+        "short_number": null,
+        "sign": "+O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "Like music."
+      },
+      {
+        "full_number": 39,
+        "short_number": null,
+        "sign": "+A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Stick to the rules."
+      },
+      {
+        "full_number": 40,
+        "short_number": 10,
+        "sign": "+C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Like to tidy up."
+      },
+      {
+        "full_number": 41,
+        "short_number": 41,
+        "sign": "+N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Dislike myself."
+      },
+      {
+        "full_number": 42,
+        "short_number": 42,
+        "sign": "+E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Try to lead others."
+      },
+      {
+        "full_number": 43,
+        "short_number": 43,
+        "sign": "+O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Feel others' emotions."
+      },
+      {
+        "full_number": 44,
+        "short_number": null,
+        "sign": "+A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Anticipate the needs of others."
+      },
+      {
+        "full_number": 45,
+        "short_number": 15,
+        "sign": "+C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Keep my promises."
+      },
+      {
+        "full_number": 46,
+        "short_number": null,
+        "sign": "+N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Am afraid that I will do the wrong thing."
+      },
+      {
+        "full_number": 47,
+        "short_number": 47,
+        "sign": "+E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "Am always on the go."
+      },
+      {
+        "full_number": 48,
+        "short_number": null,
+        "sign": "+O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Like to visit new places."
+      },
+      {
+        "full_number": 49,
+        "short_number": null,
+        "sign": "+A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Can't stand confrontations."
+      },
+      {
+        "full_number": 50,
+        "short_number": 20,
+        "sign": "+C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Work hard."
+      },
+      {
+        "full_number": 51,
+        "short_number": null,
+        "sign": "+N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Don't know why I do some of the things I do."
+      },
+      {
+        "full_number": 52,
+        "short_number": 52,
+        "sign": "+E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Seek adventure."
+      },
+      {
+        "full_number": 53,
+        "short_number": 23,
+        "sign": "+O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Love to read challenging material."
+      },
+      {
+        "full_number": 54,
+        "short_number": null,
+        "sign": "+A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Dislike talking about myself."
+      },
+      {
+        "full_number": 55,
+        "short_number": 25,
+        "sign": "+C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Am always prepared."
+      },
+      {
+        "full_number": 56,
+        "short_number": 56,
+        "sign": "+N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Become overwhelmed by events."
+      },
+      {
+        "full_number": 57,
+        "short_number": 57,
+        "sign": "+E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Have a lot of fun."
+      },
+      {
+        "full_number": 58,
+        "short_number": 58,
+        "sign": "+O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Believe that there is no absolute right or wrong."
+      },
+      {
+        "full_number": 59,
+        "short_number": 59,
+        "sign": "+A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Feel sympathy for those who are worse off than myself."
+      },
+      {
+        "full_number": 60,
+        "short_number": null,
+        "sign": "+C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Choose my words with care."
+      },
+      {
+        "full_number": 61,
+        "short_number": 61,
+        "sign": "+N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Am afraid of many things."
+      },
+      {
+        "full_number": 62,
+        "short_number": 32,
+        "sign": "+E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Feel comfortable around people."
+      },
+      {
+        "full_number": 63,
+        "short_number": 63,
+        "sign": "+O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Love to daydream."
+      },
+      {
+        "full_number": 64,
+        "short_number": 64,
+        "sign": "+A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Trust what people say."
+      },
+      {
+        "full_number": 65,
+        "short_number": 65,
+        "sign": "+C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Handle tasks smoothly."
+      },
+      {
+        "full_number": 66,
+        "short_number": null,
+        "sign": "+N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Get upset easily."
+      },
+      {
+        "full_number": 67,
+        "short_number": null,
+        "sign": "+E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Enjoy being part of a group."
+      },
+      {
+        "full_number": 68,
+        "short_number": 38,
+        "sign": "+O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "See beauty in things that others might not notice."
+      },
+      {
+        "full_number": 69,
+        "short_number": null,
+        "sign": "-A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Use flattery to get ahead."
+      },
+      {
+        "full_number": 70,
+        "short_number": null,
+        "sign": "+C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Want everything to be \"just right.\""
+      },
+      {
+        "full_number": 71,
+        "short_number": 71,
+        "sign": "+N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Am often down in the dumps."
+      },
+      {
+        "full_number": 72,
+        "short_number": null,
+        "sign": "+E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Can talk others into doing things."
+      },
+      {
+        "full_number": 73,
+        "short_number": null,
+        "sign": "+O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Am passionate about causes."
+      },
+      {
+        "full_number": 74,
+        "short_number": 14,
+        "sign": "+A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Love to help others."
+      },
+      {
+        "full_number": 75,
+        "short_number": null,
+        "sign": "+C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Pay my bills on time."
+      },
+      {
+        "full_number": 76,
+        "short_number": 16,
+        "sign": "+N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Find it difficult to approach others."
+      },
+      {
+        "full_number": 77,
+        "short_number": 77,
+        "sign": "+E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "Do a lot in my spare time."
+      },
+      {
+        "full_number": 78,
+        "short_number": null,
+        "sign": "+O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Interested in many things."
+      },
+      {
+        "full_number": 79,
+        "short_number": null,
+        "sign": "+A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Hate to seem pushy."
+      },
+      {
+        "full_number": 80,
+        "short_number": null,
+        "sign": "+C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Turn plans into actions."
+      },
+      {
+        "full_number": 81,
+        "short_number": null,
+        "sign": "+N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Do things I later regret."
+      },
+      {
+        "full_number": 82,
+        "short_number": null,
+        "sign": "+E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Love action."
+      },
+      {
+        "full_number": 83,
+        "short_number": null,
+        "sign": "+O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Have a rich vocabulary."
+      },
+      {
+        "full_number": 84,
+        "short_number": null,
+        "sign": "+A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Consider myself an average person."
+      },
+      {
+        "full_number": 85,
+        "short_number": null,
+        "sign": "+C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Start tasks right away."
+      },
+      {
+        "full_number": 86,
+        "short_number": 86,
+        "sign": "+N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Feel that I'm unable to deal with things."
+      },
+      {
+        "full_number": 87,
+        "short_number": null,
+        "sign": "+E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Express childlike joy."
+      },
+      {
+        "full_number": 88,
+        "short_number": null,
+        "sign": "+O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Believe that criminals should receive help rather than punishment."
+      },
+      {
+        "full_number": 89,
+        "short_number": null,
+        "sign": "+A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Value cooperation over competition."
+      },
+      {
+        "full_number": 90,
+        "short_number": null,
+        "sign": "+C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Stick to my chosen path."
+      },
+      {
+        "full_number": 91,
+        "short_number": 91,
+        "sign": "+N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Get stressed out easily."
+      },
+      {
+        "full_number": 92,
+        "short_number": null,
+        "sign": "+E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Act comfortably with others."
+      },
+      {
+        "full_number": 93,
+        "short_number": 93,
+        "sign": "+O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Like to get lost in thought."
+      },
+      {
+        "full_number": 94,
+        "short_number": null,
+        "sign": "+A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Believe that people are basically moral."
+      },
+      {
+        "full_number": 95,
+        "short_number": null,
+        "sign": "+C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Am sure of my ground."
+      },
+      {
+        "full_number": 96,
+        "short_number": null,
+        "sign": "+N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Am often in a bad mood."
+      },
+      {
+        "full_number": 97,
+        "short_number": null,
+        "sign": "+E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Involve others in what I am doing."
+      },
+      {
+        "full_number": 98,
+        "short_number": null,
+        "sign": "+O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "Love flowers."
+      },
+      {
+        "full_number": 99,
+        "short_number": 9,
+        "sign": "-A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Use others for my own ends."
+      },
+      {
+        "full_number": 100,
+        "short_number": null,
+        "sign": "+C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Love order and regularity."
+      },
+      {
+        "full_number": 101,
+        "short_number": null,
+        "sign": "+N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Have a low opinion of myself."
+      },
+      {
+        "full_number": 102,
+        "short_number": null,
+        "sign": "+E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Seek to influence others."
+      },
+      {
+        "full_number": 103,
+        "short_number": null,
+        "sign": "+O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Enjoy examining myself and my life."
+      },
+      {
+        "full_number": 104,
+        "short_number": 44,
+        "sign": "+A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Am concerned about others."
+      },
+      {
+        "full_number": 105,
+        "short_number": 45,
+        "sign": "+C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Tell the truth."
+      },
+      {
+        "full_number": 106,
+        "short_number": 46,
+        "sign": "+N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Am afraid to draw attention to myself."
+      },
+      {
+        "full_number": 107,
+        "short_number": null,
+        "sign": "+E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "Can manage many things at the same time."
+      },
+      {
+        "full_number": 108,
+        "short_number": null,
+        "sign": "+O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Like to begin new things."
+      },
+      {
+        "full_number": 109,
+        "short_number": null,
+        "sign": "-A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Have a sharp tongue."
+      },
+      {
+        "full_number": 110,
+        "short_number": null,
+        "sign": "+C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Plunge into tasks with all my heart."
+      },
+      {
+        "full_number": 111,
+        "short_number": 21,
+        "sign": "+N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Go on binges."
+      },
+      {
+        "full_number": 112,
+        "short_number": null,
+        "sign": "+E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Enjoy being part of a loud crowd."
+      },
+      {
+        "full_number": 113,
+        "short_number": null,
+        "sign": "+O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Can handle a lot of information."
+      },
+      {
+        "full_number": 114,
+        "short_number": null,
+        "sign": "+A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Seldom toot my own horn."
+      },
+      {
+        "full_number": 115,
+        "short_number": null,
+        "sign": "+C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Get to work at once."
+      },
+      {
+        "full_number": 116,
+        "short_number": null,
+        "sign": "+N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Can't make up my mind."
+      },
+      {
+        "full_number": 117,
+        "short_number": null,
+        "sign": "+E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Laugh my way through life."
+      },
+      {
+        "full_number": 118,
+        "short_number": null,
+        "sign": "-O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Believe in one true religion."
+      },
+      {
+        "full_number": 119,
+        "short_number": null,
+        "sign": "+A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Suffer from others' sorrows."
+      },
+      {
+        "full_number": 120,
+        "short_number": 30,
+        "sign": "-C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Jump into things without thinking."
+      },
+      {
+        "full_number": 121,
+        "short_number": null,
+        "sign": "+N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Get caught up in my problems."
+      },
+      {
+        "full_number": 122,
+        "short_number": null,
+        "sign": "+E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Cheer people up."
+      },
+      {
+        "full_number": 123,
+        "short_number": null,
+        "sign": "+O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Indulge in my fantasies."
+      },
+      {
+        "full_number": 124,
+        "short_number": null,
+        "sign": "+A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Believe in human goodness."
+      },
+      {
+        "full_number": 125,
+        "short_number": null,
+        "sign": "+C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Come up with good solutions."
+      },
+      {
+        "full_number": 126,
+        "short_number": 66,
+        "sign": "+N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Lose my temper."
+      },
+      {
+        "full_number": 127,
+        "short_number": null,
+        "sign": "+E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Love surprise parties."
+      },
+      {
+        "full_number": 128,
+        "short_number": null,
+        "sign": "+O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "Enjoy the beauty of nature."
+      },
+      {
+        "full_number": 129,
+        "short_number": null,
+        "sign": "-A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Know how to get around the rules."
+      },
+      {
+        "full_number": 130,
+        "short_number": null,
+        "sign": "+C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Do things according to a plan."
+      },
+      {
+        "full_number": 131,
+        "short_number": null,
+        "sign": "+N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Have frequent mood swings."
+      },
+      {
+        "full_number": 132,
+        "short_number": 72,
+        "sign": "+E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Take control of things."
+      },
+      {
+        "full_number": 133,
+        "short_number": null,
+        "sign": "+O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Try to understand myself."
+      },
+      {
+        "full_number": 134,
+        "short_number": null,
+        "sign": "+A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Have a good word for everyone."
+      },
+      {
+        "full_number": 135,
+        "short_number": null,
+        "sign": "+C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Listen to my conscience."
+      },
+      {
+        "full_number": 136,
+        "short_number": 76,
+        "sign": "+N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Only feel comfortable with friends."
+      },
+      {
+        "full_number": 137,
+        "short_number": null,
+        "sign": "+E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "React quickly."
+      },
+      {
+        "full_number": 138,
+        "short_number": 48,
+        "sign": "-O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Prefer to stick with things that I know."
+      },
+      {
+        "full_number": 139,
+        "short_number": null,
+        "sign": "-A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Contradict others."
+      },
+      {
+        "full_number": 140,
+        "short_number": 50,
+        "sign": "+C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Do more than what's expected of me."
+      },
+      {
+        "full_number": 141,
+        "short_number": null,
+        "sign": "+N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Love to eat."
+      },
+      {
+        "full_number": 142,
+        "short_number": 82,
+        "sign": "+E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Enjoy being reckless."
+      },
+      {
+        "full_number": 143,
+        "short_number": null,
+        "sign": "+O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Enjoy thinking about things."
+      },
+      {
+        "full_number": 144,
+        "short_number": 24,
+        "sign": "-A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Believe that I am better than others."
+      },
+      {
+        "full_number": 145,
+        "short_number": 55,
+        "sign": "+C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Carry out my plans."
+      },
+      {
+        "full_number": 146,
+        "short_number": null,
+        "sign": "+N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Get overwhelmed by emotions."
+      },
+      {
+        "full_number": 147,
+        "short_number": 87,
+        "sign": "+E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Love life."
+      },
+      {
+        "full_number": 148,
+        "short_number": 88,
+        "sign": "-O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Tend to vote for conservative political candidates."
+      },
+      {
+        "full_number": 149,
+        "short_number": 89,
+        "sign": "-A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Am not interested in other people's problems."
+      },
+      {
+        "full_number": 150,
+        "short_number": 60,
+        "sign": "-C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Make rash decisions."
+      },
+      {
+        "full_number": 151,
+        "short_number": null,
+        "sign": "-N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Am not easily bothered by things."
+      },
+      {
+        "full_number": 152,
+        "short_number": null,
+        "sign": "-E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Am hard to get to know."
+      },
+      {
+        "full_number": 153,
+        "short_number": null,
+        "sign": "+O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Spend time reflecting on things."
+      },
+      {
+        "full_number": 154,
+        "short_number": null,
+        "sign": "+A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Think that all will be well."
+      },
+      {
+        "full_number": 155,
+        "short_number": 95,
+        "sign": "+C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Know how to get things done."
+      },
+      {
+        "full_number": 156,
+        "short_number": null,
+        "sign": "-N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Rarely get irritated."
+      },
+      {
+        "full_number": 157,
+        "short_number": 67,
+        "sign": "-E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Prefer to be alone."
+      },
+      {
+        "full_number": 158,
+        "short_number": null,
+        "sign": "-O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "Do not like art."
+      },
+      {
+        "full_number": 159,
+        "short_number": 39,
+        "sign": "-A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Cheat to get ahead."
+      },
+      {
+        "full_number": 160,
+        "short_number": 40,
+        "sign": "-C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Often forget to put things back in their proper place."
+      },
+      {
+        "full_number": 161,
+        "short_number": null,
+        "sign": "+N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Feel desperate."
+      },
+      {
+        "full_number": 162,
+        "short_number": 102,
+        "sign": "-E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Wait for others to lead the way."
+      },
+      {
+        "full_number": 163,
+        "short_number": null,
+        "sign": "-O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Seldom get emotional."
+      },
+      {
+        "full_number": 164,
+        "short_number": null,
+        "sign": "-A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Look down on others."
+      },
+      {
+        "full_number": 165,
+        "short_number": 75,
+        "sign": "-C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Break rules."
+      },
+      {
+        "full_number": 166,
+        "short_number": null,
+        "sign": "+N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Stumble over my words."
+      },
+      {
+        "full_number": 167,
+        "short_number": 107,
+        "sign": "-E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "Like to take it easy."
+      },
+      {
+        "full_number": 168,
+        "short_number": 78,
+        "sign": "-O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Dislike changes."
+      },
+      {
+        "full_number": 169,
+        "short_number": 19,
+        "sign": "-A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Love a good fight."
+      },
+      {
+        "full_number": 170,
+        "short_number": null,
+        "sign": "+C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Set high standards for myself and others."
+      },
+      {
+        "full_number": 171,
+        "short_number": 51,
+        "sign": "-N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Rarely overindulge."
+      },
+      {
+        "full_number": 172,
+        "short_number": 112,
+        "sign": "+E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Act wild and crazy."
+      },
+      {
+        "full_number": 173,
+        "short_number": null,
+        "sign": "-O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Am not interested in abstract ideas."
+      },
+      {
+        "full_number": 174,
+        "short_number": 54,
+        "sign": "-A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Think highly of myself."
+      },
+      {
+        "full_number": 175,
+        "short_number": null,
+        "sign": "-C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Find it difficult to get down to work."
+      },
+      {
+        "full_number": 176,
+        "short_number": 116,
+        "sign": "-N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Remain calm under pressure."
+      },
+      {
+        "full_number": 177,
+        "short_number": 117,
+        "sign": "+E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Look at the bright side of life."
+      },
+      {
+        "full_number": 178,
+        "short_number": null,
+        "sign": "-O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Believe that too much tax money goes to support artists."
+      },
+      {
+        "full_number": 179,
+        "short_number": null,
+        "sign": "-A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Tend to dislike soft-hearted people."
+      },
+      {
+        "full_number": 180,
+        "short_number": null,
+        "sign": "-C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Like to act on a whim."
+      },
+      {
+        "full_number": 181,
+        "short_number": null,
+        "sign": "-N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Am relaxed most of the time."
+      },
+      {
+        "full_number": 182,
+        "short_number": null,
+        "sign": "-E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Often feel uncomfortable around others."
+      },
+      {
+        "full_number": 183,
+        "short_number": null,
+        "sign": "-O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Seldom daydream."
+      },
+      {
+        "full_number": 184,
+        "short_number": 94,
+        "sign": "-A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Distrust people."
+      },
+      {
+        "full_number": 185,
+        "short_number": null,
+        "sign": "-C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Misjudge situations."
+      },
+      {
+        "full_number": 186,
+        "short_number": null,
+        "sign": "-N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Seldom get mad."
+      },
+      {
+        "full_number": 187,
+        "short_number": null,
+        "sign": "-E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Want to be left alone."
+      },
+      {
+        "full_number": 188,
+        "short_number": 68,
+        "sign": "-O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "Do not like poetry."
+      },
+      {
+        "full_number": 189,
+        "short_number": null,
+        "sign": "-A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Put people under pressure."
+      },
+      {
+        "full_number": 190,
+        "short_number": 70,
+        "sign": "-C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Leave a mess in my room."
+      },
+      {
+        "full_number": 191,
+        "short_number": null,
+        "sign": "+N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Feel that my life lacks direction."
+      },
+      {
+        "full_number": 192,
+        "short_number": null,
+        "sign": "-E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Keep in the background."
+      },
+      {
+        "full_number": 193,
+        "short_number": null,
+        "sign": "-O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Am not easily affected by my emotions."
+      },
+      {
+        "full_number": 194,
+        "short_number": 74,
+        "sign": "-A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Am indifferent to the feelings of others."
+      },
+      {
+        "full_number": 195,
+        "short_number": 105,
+        "sign": "-C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Break my promises."
+      },
+      {
+        "full_number": 196,
+        "short_number": null,
+        "sign": "-N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Am not embarrassed easily."
+      },
+      {
+        "full_number": 197,
+        "short_number": null,
+        "sign": "-E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "Like to take my time."
+      },
+      {
+        "full_number": 198,
+        "short_number": null,
+        "sign": "-O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Don't like the idea of change."
+      },
+      {
+        "full_number": 199,
+        "short_number": 49,
+        "sign": "-A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Yell at people."
+      },
+      {
+        "full_number": 200,
+        "short_number": null,
+        "sign": "+C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Demand quality."
+      },
+      {
+        "full_number": 201,
+        "short_number": 81,
+        "sign": "-N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Easily resist temptations."
+      },
+      {
+        "full_number": 202,
+        "short_number": null,
+        "sign": "+E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Willing to try anything once."
+      },
+      {
+        "full_number": 203,
+        "short_number": 53,
+        "sign": "-O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Avoid philosophical discussions."
+      },
+      {
+        "full_number": 204,
+        "short_number": 84,
+        "sign": "-A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Have a high opinion of myself."
+      },
+      {
+        "full_number": 205,
+        "short_number": 85,
+        "sign": "-C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Waste my time."
+      },
+      {
+        "full_number": 206,
+        "short_number": null,
+        "sign": "-N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Can handle complex problems."
+      },
+      {
+        "full_number": 207,
+        "short_number": null,
+        "sign": "+E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Laugh aloud."
+      },
+      {
+        "full_number": 208,
+        "short_number": null,
+        "sign": "-O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Believe laws should be strictly enforced."
+      },
+      {
+        "full_number": 209,
+        "short_number": null,
+        "sign": "-A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Believe in an eye for an eye."
+      },
+      {
+        "full_number": 210,
+        "short_number": 90,
+        "sign": "-C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Rush into things."
+      },
+      {
+        "full_number": 211,
+        "short_number": null,
+        "sign": "-N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Am not easily disturbed by events."
+      },
+      {
+        "full_number": 212,
+        "short_number": 62,
+        "sign": "-E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Avoid contacts with others."
+      },
+      {
+        "full_number": 213,
+        "short_number": null,
+        "sign": "-O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Do not have a good imagination."
+      },
+      {
+        "full_number": 214,
+        "short_number": null,
+        "sign": "-A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Suspect hidden motives in others."
+      },
+      {
+        "full_number": 215,
+        "short_number": null,
+        "sign": "-C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Don't understand things."
+      },
+      {
+        "full_number": 216,
+        "short_number": 96,
+        "sign": "-N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Am not easily annoyed."
+      },
+      {
+        "full_number": 217,
+        "short_number": null,
+        "sign": "-E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Don't like crowded events."
+      },
+      {
+        "full_number": 218,
+        "short_number": 98,
+        "sign": "-O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "Do not enjoy going to art museums."
+      },
+      {
+        "full_number": 219,
+        "short_number": null,
+        "sign": "-A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Pretend to be concerned for others."
+      },
+      {
+        "full_number": 220,
+        "short_number": 100,
+        "sign": "-C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Leave my belongings around."
+      },
+      {
+        "full_number": 221,
+        "short_number": null,
+        "sign": "-N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Seldom feel blue."
+      },
+      {
+        "full_number": 222,
+        "short_number": null,
+        "sign": "-E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Have little to say."
+      },
+      {
+        "full_number": 223,
+        "short_number": 73,
+        "sign": "-O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Rarely notice my emotional reactions."
+      },
+      {
+        "full_number": 224,
+        "short_number": null,
+        "sign": "-A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Make people feel uncomfortable."
+      },
+      {
+        "full_number": 225,
+        "short_number": null,
+        "sign": "-C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Get others to do my duties."
+      },
+      {
+        "full_number": 226,
+        "short_number": null,
+        "sign": "-N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Am comfortable in unfamiliar situations."
+      },
+      {
+        "full_number": 227,
+        "short_number": null,
+        "sign": "-E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "Like a leisurely lifestyle."
+      },
+      {
+        "full_number": 228,
+        "short_number": null,
+        "sign": "-O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Am a creature of habit."
+      },
+      {
+        "full_number": 229,
+        "short_number": 79,
+        "sign": "-A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Insult people."
+      },
+      {
+        "full_number": 230,
+        "short_number": null,
+        "sign": "-C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Am not highly motivated to succeed."
+      },
+      {
+        "full_number": 231,
+        "short_number": 111,
+        "sign": "-N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Am able to control my cravings."
+      },
+      {
+        "full_number": 232,
+        "short_number": null,
+        "sign": "+E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Seek danger."
+      },
+      {
+        "full_number": 233,
+        "short_number": 83,
+        "sign": "-O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Have difficulty understanding abstract ideas."
+      },
+      {
+        "full_number": 234,
+        "short_number": null,
+        "sign": "-A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Know the answers to many questions."
+      },
+      {
+        "full_number": 235,
+        "short_number": null,
+        "sign": "-C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Need a push to get started."
+      },
+      {
+        "full_number": 236,
+        "short_number": null,
+        "sign": "-N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Know how to cope."
+      },
+      {
+        "full_number": 237,
+        "short_number": null,
+        "sign": "+E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Amuse my friends."
+      },
+      {
+        "full_number": 238,
+        "short_number": null,
+        "sign": "-O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Believe that we coddle criminals too much."
+      },
+      {
+        "full_number": 239,
+        "short_number": 119,
+        "sign": "-A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Try not to think about the needy."
+      },
+      {
+        "full_number": 240,
+        "short_number": null,
+        "sign": "-C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Do crazy things."
+      },
+      {
+        "full_number": 241,
+        "short_number": null,
+        "sign": "-N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Don't worry about things that have already happened."
+      },
+      {
+        "full_number": 242,
+        "short_number": null,
+        "sign": "-E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Am not really interested in others."
+      },
+      {
+        "full_number": 243,
+        "short_number": null,
+        "sign": "-O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Seldom get lost in thought."
+      },
+      {
+        "full_number": 244,
+        "short_number": null,
+        "sign": "-A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Am wary of others."
+      },
+      {
+        "full_number": 245,
+        "short_number": null,
+        "sign": "-C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Have little to contribute."
+      },
+      {
+        "full_number": 246,
+        "short_number": null,
+        "sign": "-N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Keep my cool."
+      },
+      {
+        "full_number": 247,
+        "short_number": 97,
+        "sign": "-E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Avoid crowds."
+      },
+      {
+        "full_number": 248,
+        "short_number": null,
+        "sign": "-O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "Do not like concerts."
+      },
+      {
+        "full_number": 249,
+        "short_number": 69,
+        "sign": "-A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Take advantage of others."
+      },
+      {
+        "full_number": 250,
+        "short_number": null,
+        "sign": "-C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Am not bothered by messy people."
+      },
+      {
+        "full_number": 251,
+        "short_number": 101,
+        "sign": "-N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Feel comfortable with myself."
+      },
+      {
+        "full_number": 252,
+        "short_number": null,
+        "sign": "-E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Don't like to draw attention to myself."
+      },
+      {
+        "full_number": 253,
+        "short_number": null,
+        "sign": "-O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Experience very few emotional highs and lows."
+      },
+      {
+        "full_number": 254,
+        "short_number": null,
+        "sign": "-A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Turn my back on others."
+      },
+      {
+        "full_number": 255,
+        "short_number": null,
+        "sign": "-C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Do the opposite of what is asked."
+      },
+      {
+        "full_number": 256,
+        "short_number": 106,
+        "sign": "-N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Am not bothered by difficult social situations."
+      },
+      {
+        "full_number": 257,
+        "short_number": null,
+        "sign": "-E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "Let things proceed at their own pace."
+      },
+      {
+        "full_number": 258,
+        "short_number": null,
+        "sign": "-O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Dislike new foods."
+      },
+      {
+        "full_number": 259,
+        "short_number": 109,
+        "sign": "-A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Get back at others."
+      },
+      {
+        "full_number": 260,
+        "short_number": 80,
+        "sign": "-C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Do just enough work to get by."
+      },
+      {
+        "full_number": 261,
+        "short_number": null,
+        "sign": "-N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Never spend more than I can afford."
+      },
+      {
+        "full_number": 262,
+        "short_number": null,
+        "sign": "-E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Would never go hang gliding or bungee jumping."
+      },
+      {
+        "full_number": 263,
+        "short_number": 113,
+        "sign": "-O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Am not interested in theoretical discussions."
+      },
+      {
+        "full_number": 264,
+        "short_number": 114,
+        "sign": "-A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Boast about my virtues."
+      },
+      {
+        "full_number": 265,
+        "short_number": 115,
+        "sign": "-C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Have difficulty starting tasks."
+      },
+      {
+        "full_number": 266,
+        "short_number": null,
+        "sign": "-N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Readily overcome setbacks."
+      },
+      {
+        "full_number": 267,
+        "short_number": null,
+        "sign": "-E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Am not easily amused."
+      },
+      {
+        "full_number": 268,
+        "short_number": 118,
+        "sign": "-O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Believe that we should be tough on crime."
+      },
+      {
+        "full_number": 269,
+        "short_number": null,
+        "sign": "-A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Believe people should fend for themselves."
+      },
+      {
+        "full_number": 270,
+        "short_number": 120,
+        "sign": "-C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Act without thinking."
+      },
+      {
+        "full_number": 271,
+        "short_number": null,
+        "sign": "-N1",
+        "key": "N1",
+        "facet": "Anxiety",
+        "item": "Adapt easily to new situations."
+      },
+      {
+        "full_number": 272,
+        "short_number": 92,
+        "sign": "-E1",
+        "key": "E1",
+        "facet": "Friendliness",
+        "item": "Keep others at a distance."
+      },
+      {
+        "full_number": 273,
+        "short_number": null,
+        "sign": "-O1",
+        "key": "O1",
+        "facet": "Imagination",
+        "item": "Have difficulty imagining things."
+      },
+      {
+        "full_number": 274,
+        "short_number": null,
+        "sign": "-A1",
+        "key": "A1",
+        "facet": "Trust",
+        "item": "Believe that people are essentially evil."
+      },
+      {
+        "full_number": 275,
+        "short_number": null,
+        "sign": "-C1",
+        "key": "C1",
+        "facet": "Self-Efficacy",
+        "item": "Don't see the consequences of things."
+      },
+      {
+        "full_number": 276,
+        "short_number": null,
+        "sign": "-N2",
+        "key": "N2",
+        "facet": "Anger",
+        "item": "Rarely complain."
+      },
+      {
+        "full_number": 277,
+        "short_number": null,
+        "sign": "-E2",
+        "key": "E2",
+        "facet": "Gregariousness",
+        "item": "Seek quiet."
+      },
+      {
+        "full_number": 278,
+        "short_number": null,
+        "sign": "-O2",
+        "key": "O2",
+        "facet": "Artistic Interests",
+        "item": "Do not enjoy watching dance performances."
+      },
+      {
+        "full_number": 279,
+        "short_number": 99,
+        "sign": "-A2",
+        "key": "A2",
+        "facet": "Morality",
+        "item": "Obstruct others' plans."
+      },
+      {
+        "full_number": 280,
+        "short_number": null,
+        "sign": "-C2",
+        "key": "C2",
+        "facet": "Orderliness",
+        "item": "Am not bothered by disorder."
+      },
+      {
+        "full_number": 281,
+        "short_number": null,
+        "sign": "-N3",
+        "key": "N3",
+        "facet": "Depression",
+        "item": "Am very pleased with myself."
+      },
+      {
+        "full_number": 282,
+        "short_number": null,
+        "sign": "-E3",
+        "key": "E3",
+        "facet": "Assertiveness",
+        "item": "Hold back my opinions."
+      },
+      {
+        "full_number": 283,
+        "short_number": 103,
+        "sign": "-O3",
+        "key": "O3",
+        "facet": "Emotionality",
+        "item": "Don't understand people who get emotional."
+      },
+      {
+        "full_number": 284,
+        "short_number": 104,
+        "sign": "-A3",
+        "key": "A3",
+        "facet": "Altruism",
+        "item": "Take no time for others."
+      },
+      {
+        "full_number": 285,
+        "short_number": null,
+        "sign": "-C3",
+        "key": "C3",
+        "facet": "Dutifulness",
+        "item": "Misrepresent the facts."
+      },
+      {
+        "full_number": 286,
+        "short_number": null,
+        "sign": "-N4",
+        "key": "N4",
+        "facet": "Self-Consciousness",
+        "item": "Am able to stand up for myself."
+      },
+      {
+        "full_number": 287,
+        "short_number": null,
+        "sign": "-E4",
+        "key": "E4",
+        "facet": "Activity Level",
+        "item": "React slowly."
+      },
+      {
+        "full_number": 288,
+        "short_number": 108,
+        "sign": "-O4",
+        "key": "O4",
+        "facet": "Adventurousness",
+        "item": "Am attached to conventional ways."
+      },
+      {
+        "full_number": 289,
+        "short_number": null,
+        "sign": "-A4",
+        "key": "A4",
+        "facet": "Cooperation",
+        "item": "Hold a grudge."
+      },
+      {
+        "full_number": 290,
+        "short_number": 110,
+        "sign": "-C4",
+        "key": "C4",
+        "facet": "Achievement-Striving",
+        "item": "Put little time and effort into my work."
+      },
+      {
+        "full_number": 291,
+        "short_number": null,
+        "sign": "-N5",
+        "key": "N5",
+        "facet": "Immoderation",
+        "item": "Never splurge."
+      },
+      {
+        "full_number": 292,
+        "short_number": null,
+        "sign": "-E5",
+        "key": "E5",
+        "facet": "Excitement-Seeking",
+        "item": "Dislike loud music."
+      },
+      {
+        "full_number": 293,
+        "short_number": null,
+        "sign": "-O5",
+        "key": "O5",
+        "facet": "Intellect",
+        "item": "Avoid difficult reading material."
+      },
+      {
+        "full_number": 294,
+        "short_number": null,
+        "sign": "-A5",
+        "key": "A5",
+        "facet": "Modesty",
+        "item": "Make myself the center of attention."
+      },
+      {
+        "full_number": 295,
+        "short_number": null,
+        "sign": "-C5",
+        "key": "C5",
+        "facet": "Self-Discipline",
+        "item": "Postpone decisions."
+      },
+      {
+        "full_number": 296,
+        "short_number": null,
+        "sign": "-N6",
+        "key": "N6",
+        "facet": "Vulnerability",
+        "item": "Am calm even in tense situations."
+      },
+      {
+        "full_number": 297,
+        "short_number": null,
+        "sign": "-E6",
+        "key": "E6",
+        "facet": "Cheerfulness",
+        "item": "Seldom joke around."
+      },
+      {
+        "full_number": 298,
+        "short_number": null,
+        "sign": "-O6",
+        "key": "O6",
+        "facet": "Liberalism",
+        "item": "Like to stand during the national anthem."
+      },
+      {
+        "full_number": 299,
+        "short_number": null,
+        "sign": "-A6",
+        "key": "A6",
+        "facet": "Sympathy",
+        "item": "Can't stand weak people."
+      },
+      {
+        "full_number": 300,
+        "short_number": null,
+        "sign": "-C6",
+        "key": "C6",
+        "facet": "Cautiousness",
+        "item": "Often make last-minute plans."
+      }
+    ]
+}
