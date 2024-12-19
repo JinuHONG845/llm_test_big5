@@ -119,7 +119,14 @@ Questions to rate:
                 ],
                 temperature=1.0
             )
-            return json.loads(response.choices[0].message.content)
+            # JSON 문자열 추출 및 정제
+            content = response.choices[0].message.content
+            # 코드 블록이 있는 경우 제거
+            if content.startswith('```') and content.endswith('```'):
+                content = content.split('```')[1]
+                if content.startswith('json'):
+                    content = content[4:]
+            return json.loads(content.strip())
         
         elif llm_choice == "Claude 3":
             response = client.messages.create(
