@@ -59,7 +59,16 @@ except json.JSONDecodeError as e:
     st.stop()
 
 # LLM 선택 및 설정
-llm_choice = st.radio("LLM 선택", ("GPT-4", "Claude 3", "Gemini Pro"))
+col1, col2 = st.columns([2, 3])
+with col1:
+    llm_choice = st.radio("LLM 선택", ("GPT-4", "Claude 3", "Gemini Pro"), horizontal=True)
+
+with col2:
+    test_mode = st.radio(
+        "테스트 모드 선택",
+        ("전체 테스트", "간이 테스트 (3개 페르소나)"),
+        horizontal=True
+    )
 
 # API 키 설정
 if llm_choice == "GPT-4":
@@ -196,16 +205,19 @@ Questions to rate:
 if st.button("테스트 시작"):
     all_results = {}
     
+    # 테스트할 페르소나 선택
+    test_personas = personas[:3] if test_mode == "간이 테스트 (3개 페르소나)" else personas
+    
     # 빈 데이터프레임 초기화
     ipip_df = pd.DataFrame(
         np.nan, 
-        index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
+        index=[f"Persona {i+1}" for i in range(len(test_personas))] + ['Average'],
         columns=[f"Q{i+1}" for i in range(300)]
     )
     
     bfi_df = pd.DataFrame(
         np.nan, 
-        index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
+        index=[f"Persona {i+1}" for i in range(len(test_personas))] + ['Average'],
         columns=[f"Q{i+1}" for i in range(44)]
     )
     
@@ -213,7 +225,7 @@ if st.button("테스트 시작"):
     ipip_df_full = ipip_df.copy()
     bfi_df_full = bfi_df.copy()
     
-    # 세로로 배치
+    # 결과 표시 섹션
     st.write("### IPIP Test 결과")
     ipip_table = st.empty()
     ipip_table.dataframe(
@@ -240,7 +252,8 @@ if st.button("테스트 시작"):
         use_container_width=True
     )
     
-    for i, persona in enumerate(personas):
+    # 페르소나별 테스트 실행
+    for i, persona in enumerate(test_personas):
         # IPIP 테스트 (300개 질문을 50개씩 나누어 처리)
         all_ipip_scores = []
         for j in range(0, 300, 50):
