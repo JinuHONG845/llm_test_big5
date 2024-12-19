@@ -138,9 +138,12 @@ Questions to rate:
             response = client.messages.create(
                 model="claude-3-sonnet-20240229",
                 max_tokens=2000,
+                system="You are a helpful assistant that responds only in valid JSON format.",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
                 ],
                 temperature=1.0
             )
