@@ -112,7 +112,7 @@ Questions to rate:
     try:
         if llm_choice == "GPT-4":
             response = openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4-turbo-preview",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
                     {"role": "user", "content": prompt}
