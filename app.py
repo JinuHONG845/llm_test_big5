@@ -236,13 +236,22 @@ if st.button("테스트 시작"):
     ipip_df_full = ipip_df.copy()
     bfi_df_full = bfi_df.copy()
     
-    # IPIP 테스트 섹션
-    st.write("### IPIP Test 진행 중...")
-    ipip_progress = st.progress(0)
-    ipip_table = st.empty()
+    # 두 개의 컬럼으로 나누어 테스트 결과 표시
+    ipip_col, bfi_col = st.columns(2)
     
-    # 모든 페르소나의 IPIP 테스트 실행
+    with ipip_col:
+        st.write("### IPIP Test 진행 중...")
+        ipip_progress = st.progress(0)
+        ipip_table = st.empty()
+    
+    with bfi_col:
+        st.write("### BFI Test 진행 중...")
+        bfi_progress = st.progress(0)
+        bfi_table = st.empty()
+    
+    # 모든 페르소나에 대해 두 테스트 동시 실행
     for i, persona in enumerate(test_personas):
+        # IPIP 테스트
         all_ipip_scores = []
         for j in range(0, 300, 50):
             batch_questions = ipip_questions['items'][j:j+50]
@@ -259,7 +268,7 @@ if st.button("테스트 시작"):
                 ipip_df_full.iloc[i] = current_scores
                 ipip_df_full.loc['Average'] = ipip_df_full.iloc[:-1].mean()
                 
-                # 진행률 업데이트
+                # IPIP 진행률 업데이트
                 progress = (i * 300 + j + len(scores)) / (len(test_personas) * 300)
                 ipip_progress.progress(progress)
                 
@@ -273,16 +282,8 @@ if st.button("테스트 시작"):
                         ]),
                     use_container_width=True
                 )
-    
-    st.write("### IPIP Test 완료")
-    
-    # BFI 테스트 섹션
-    st.write("### BFI Test 진행 중...")
-    bfi_progress = st.progress(0)
-    bfi_table = st.empty()
-    
-    # 모든 페르소나의 BFI 테스트 실행
-    for i, persona in enumerate(test_personas):
+        
+        # BFI 테스트
         bfi_responses = get_llm_response(persona, bfi_questions[:44], 'BFI')
         if bfi_responses and 'responses' in bfi_responses:
             try:
@@ -294,7 +295,7 @@ if st.button("테스트 시작"):
                     bfi_df_full.iloc[i] = scores
                     bfi_df_full.loc['Average'] = bfi_df_full.iloc[:-1].mean()
                     
-                    # 진행률 업데이트
+                    # BFI 진행률 업데이트
                     progress = (i + 1) / len(test_personas)
                     bfi_progress.progress(progress)
                     
@@ -311,7 +312,11 @@ if st.button("테스트 시작"):
             except Exception as e:
                 st.error(f"BFI 점수 처리 중 오류: {str(e)}")
     
-    st.write("### BFI Test 완료")
+    with ipip_col:
+        st.write("### IPIP Test 완료")
+    
+    with bfi_col:
+        st.write("### BFI Test 완료")
     
     # CSV 파일 생성
     csv_data = pd.concat([
