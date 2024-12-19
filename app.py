@@ -78,60 +78,61 @@ except json.JSONDecodeError as e:
     st.stop()
 
 # LLM 선택 및 설정
-col1, col2, col3 = st.columns([2, 2, 3])
+col1, col2 = st.columns([1, 2])
 
 with col1:
-    llm_provider = st.radio(
-        "LLM 제공자",
-        ("OpenAI", "Anthropic", "Google"),
+    llm_choice = st.radio(
+        "LLM 선택",
+        ("GPT", "Claude", "Gemini"),
         horizontal=True
     )
 
 with col2:
-    if llm_provider == "OpenAI":
-        llm_model = st.radio(
-            "모델 선택",
+    # LLM 선택에 따른 세부 모델 선택
+    if llm_choice == "GPT":
+        model_choice = st.radio(
+            "GPT 모델 선택",
             ("GPT-4 Turbo", "GPT-3.5 Turbo"),
             horizontal=True,
             help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다."
         )
-    elif llm_provider == "Anthropic":
-        llm_model = st.radio(
-            "모델 선택",
+    elif llm_choice == "Claude":
+        model_choice = st.radio(
+            "Claude 모델 선택",
             ("Claude 3 Sonnet", "Claude 3 Haiku"),
             horizontal=True,
             help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다."
         )
-    else:  # Google
-        llm_model = st.radio(
-            "모델 선택",
+    else:  # Gemini
+        model_choice = st.radio(
+            "Gemini 모델 선택",
             ("Gemini Pro", "Gemini Nano"),
             horizontal=True,
             help="Gemini Pro는 더 정확하지만 느립니다. Gemini Nano는 더 빠르지만 정확도가 낮을 수 있습니다."
         )
 
-with col3:
-    test_mode = st.radio(
-        "테스트 모드 선택",
-        ("전체 테스트", "간이 테스트 (랜덤 3개 페르소나)"),
-        horizontal=True,
-        help="간이 테스트는 전체 페르소나 중 무작위로 3개를 선택하여 진행합니다."
-    )
+# 테스트 모드 선택
+test_mode = st.radio(
+    "테스트 모드 선택",
+    ("전체 테스트", "간이 테스트 (랜덤 3개 페르소나)"),
+    horizontal=True,
+    help="간이 테스트는 전체 페르소나 중 무작위로 3개를 선택하여 진행합니다."
+)
 
 # API 키 설정
-if llm_provider == "OpenAI":
+if llm_choice == "GPT":
     api_key = st.secrets.get("OPENAI_API_KEY")
     if not api_key:
         st.error("OpenAI API 키가 설정되지 않았습니다.")
         st.stop()
     openai.api_key = api_key
-elif llm_provider == "Anthropic":
+elif llm_choice == "Claude":
     api_key = st.secrets.get("ANTHROPIC_API_KEY")
     if not api_key:
         st.error("Anthropic API 키가 설정되지 않았습니다.")
         st.stop()
     client = anthropic.Anthropic(api_key=api_key)
-else:  # Google
+else:  # Gemini
     api_key = st.secrets.get("GOOGLE_API_KEY")
     if not api_key:
         st.error("Google API 키가 설정되지 않았습니다.")
@@ -189,8 +190,8 @@ Questions to rate:
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                if llm_provider == "OpenAI":
-                    model_name = "gpt-4-turbo-preview" if llm_model == "GPT-4 Turbo" else "gpt-3.5-turbo"
+                if llm_choice == "GPT":
+                    model_name = "gpt-4-turbo-preview" if model_choice == "GPT-4 Turbo" else "gpt-3.5-turbo"
                     response = openai.chat.completions.create(
                         model=model_name,
                         messages=[
@@ -202,8 +203,8 @@ Questions to rate:
                     )
                     content = response.choices[0].message.content
                     
-                elif llm_provider == "Anthropic":
-                    model_name = "claude-3-sonnet-20240229" if llm_model == "Claude 3 Sonnet" else "claude-3-haiku-20240307"
+                elif llm_choice == "Claude":
+                    model_name = "claude-3-sonnet-20240229" if model_choice == "Claude 3 Sonnet" else "claude-3-haiku-20240307"
                     response = client.messages.create(
                         model=model_name,
                         max_tokens=2000,
@@ -214,8 +215,8 @@ Questions to rate:
                     )
                     content = response.content[0].text
                     
-                else:  # Google
-                    model_name = 'gemini-pro' if llm_model == "Gemini Pro" else 'gemini-nano'
+                else:  # Gemini
+                    model_name = 'gemini-pro' if model_choice == "Gemini Pro" else 'gemini-nano'
                     model = genai.GenerativeModel(model_name)
                     response = model.generate_content(
                         prompt,
@@ -269,7 +270,7 @@ def get_batch_size(model):
 
 # 테스트 실행 버튼
 if st.button("테스트 시작"):
-    ipip_batch_size, bfi_batch_size = get_batch_size(llm_model)
+    ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
     
     all_results = {}
     
