@@ -7,6 +7,7 @@ import anthropic
 import google.generativeai as genai
 import time
 from tenacity import retry, stop_after_attempt, wait_exponential
+import random  # 파일 상단에 추가
 
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="LLM Big 5 Test")
@@ -66,8 +67,9 @@ with col1:
 with col2:
     test_mode = st.radio(
         "테스트 모드 선택",
-        ("전체 테스트", "간이 테스트 (3개 페르소나)"),
-        horizontal=True
+        ("전체 테스트", "간이 테스트 (랜덤 3개 페르소나)"),
+        horizontal=True,
+        help="간이 테스트는 전체 페르소나 중 무작위로 3개를 선택하여 진행합니다."
     )
 
 # API 키 설정
@@ -206,7 +208,18 @@ if st.button("테스트 시작"):
     all_results = {}
     
     # 테스트할 페르소나 선택
-    test_personas = personas[:3] if test_mode == "간이 테스트 (3개 페르소나)" else personas
+    if test_mode == "간이 테스트 (랜덤 3개 페르소나)":
+        # 전체 페르소나 중에서 랜덤하게 3개 선택
+        test_personas = random.sample(personas, 3)
+    else:
+        test_personas = personas
+    
+    # 선택된 페르소나 정보 표시
+    if test_mode == "간이 테스트 (랜덤 3개 페르소나)":
+        st.write("### 선택된 페르소나")
+        for i, persona in enumerate(test_personas, 1):
+            st.write(f"페르소나 {i}: {', '.join(persona['personality'])}")
+        st.write("---")
     
     # 빈 데이터프레임 초기화
     ipip_df = pd.DataFrame(
