@@ -85,18 +85,24 @@ def get_llm_response(persona, questions, test_type):
     # 질문 목록 준비
     if test_type == 'IPIP':
         question_list = [q['item'] for q in questions]
-    else:
+        scale_description = """1 = Very inaccurate
+2 = Moderately inaccurate
+3 = Neither
+4 = Moderately accurate
+5 = Very accurate"""
+    else:  # BFI
         question_list = [q['question'] for q in questions]
+        scale_description = """1 = Disagree Strongly
+2 = Disagree a little
+3 = Neither agree nor disagree
+4 = Agree a little
+5 = Agree strongly"""
     
     # 프롬프트 구성
     prompt = f"""Based on this persona: {', '.join(persona['personality'])}
 
 For each question, provide a rating from 1-5 where:
-1 = Strongly Disagree
-2 = Disagree
-3 = Neutral
-4 = Agree
-5 = Strongly Agree
+{scale_description}
 
 Return ONLY a JSON object in this exact format:
 {{
@@ -107,7 +113,7 @@ Return ONLY a JSON object in this exact format:
 }}
 
 Questions to rate:
-{json.dumps(question_list[:50], indent=2)}"""  # 한 번에 50개 질문만 처리
+{json.dumps(question_list[:50], indent=2)}"""
     
     try:
         if llm_choice == "GPT-4":
