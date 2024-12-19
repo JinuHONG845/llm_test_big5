@@ -5,6 +5,8 @@ import json
 import openai
 import anthropic
 import google.generativeai as genai
+import time
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="LLM Big 5 Test")
@@ -79,6 +81,11 @@ else:  # Gemini Pro
         st.stop()
     genai.configure(api_key=api_key)
 
+@retry(
+    stop=stop_after_attempt(3),  # 최대 3번 재시도
+    wait=wait_exponential(multiplier=1, min=4, max=10),  # 4~10초 사이 대기시간
+    retry_error_callback=lambda retry_state: None  # 실패시 None 반환
+)
 def get_llm_response(persona, questions, test_type):
     """LLM을 사용하여 페르소나의 테스트 응답을 생성"""
     
@@ -125,14 +132,19 @@ Questions to rate:
                 ],
                 temperature=1.0
             )
-            # JSON 문자열 추출 및 정제
             content = response.choices[0].message.content
-            # 코드 블록이 있는 경우 제거
             if content.startswith('```') and content.endswith('```'):
                 content = content.split('```')[1]
                 if content.startswith('json'):
                     content = content[4:]
-            return json.loads(content.strip())
+            result = json.loads(content.strip())
+            
+            # 응답 검증
+            if not result or 'responses' not in result or len(result['responses']) < len(question_list):
+                raise ValueError("불완전한 응답")
+                
+            time.sleep(2)  # API 호출 사이에 2초 대기
+            return result
         
         elif llm_choice == "Claude 3":
             response = client.messages.create(
@@ -147,7 +159,14 @@ Questions to rate:
                 ],
                 temperature=1.0
             )
-            return json.loads(response.content[0].text)
+            result = json.loads(response.content[0].text)
+            
+            # 응답 검증
+            if not result or 'responses' not in result or len(result['responses']) < len(question_list):
+                raise ValueError("불완전한 응답")
+                
+            time.sleep(2)  # API 호출 사이에 2초 대기
+            return result
         
         else:  # Gemini Pro
             model = genai.GenerativeModel('gemini-pro')
@@ -171,7 +190,7 @@ Questions to rate:
         st.error(f"LLM API 오류: {str(e)}")
         st.write("프롬프트:", prompt)
         st.write("응답:", response if 'response' in locals() else "No response")
-        return None
+        raise e  # 재시도를 위해 예외를 다시 발생
 
 # 테스트 실행 버튼
 if st.button("테스트 시작"):
