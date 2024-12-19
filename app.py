@@ -18,25 +18,43 @@ st.markdown("""
         .block-container {
             padding-top: 1rem;
             padding-bottom: 1rem;
-            padding-left: 3rem;  /* 좌측 여백 증가 */
-            padding-right: 3rem;  /* 우측 여백 증가 */
+            padding-left: 3rem;
+            padding-right: 3rem;
             max-width: 100rem;
         }
         .element-container {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
         .stDataFrame {
             width: 100%;
         }
-        /* 테이블 헤더와 내용 사이 간격 */
         .dataframe {
-            margin-top: 0.5rem;
+            margin-top: 1rem;
             margin-bottom: 2rem;
+            font-size: 14px;
         }
-        /* 제목과 테이블 사이 간격 */
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 100%;
+        }
+        th {
+            background-color: #f0f2f6;
+            font-weight: bold;
+            padding: 12px 8px !important;
+        }
+        td {
+            padding: 10px 8px !important;
+        }
         h3 {
-            margin-top: 1.5rem !important;
+            margin-top: 2rem !important;
             margin-bottom: 1rem !important;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid #f0f2f6;
+            color: #0e1117;
+        }
+        .stProgress > div > div {
+            background-color: #00cc99;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -152,7 +170,7 @@ Questions to rate:
             
             # 응답 검증
             if not result or 'responses' not in result or len(result['responses']) < len(question_list):
-                raise ValueError("불완전한 응답")
+                raise ValueError("불완전�� 응답")
                 
             time.sleep(2)  # API 호출 사이에 2초 대기
             return result
@@ -237,35 +255,85 @@ if st.button("테스트 시작"):
     bfi_df_full = bfi_df.copy()
     
     # IPIP 테스트 섹션
-    st.write("### IPIP Test")
+    st.markdown("---")  # 구분선 추가
+    st.markdown("""
+        <h3 style='text-align: center; color: #0e1117; background-color: #f0f2f6; 
+        padding: 1rem; border-radius: 5px;'>IPIP Test</h3>
+    """, unsafe_allow_html=True)
     ipip_progress = st.progress(0)
     ipip_table = st.empty()
     
     # 초기 IPIP 테이블 표시
     ipip_table.dataframe(
         ipip_df.fillna(0).round().astype(int).style
-            .background_gradient(cmap='YlOrRd')
+            .background_gradient(
+                cmap='YlOrRd',
+                vmin=1,
+                vmax=5
+            )
             .format("{:d}")
-            .set_properties(**{'width': '40px'})
+            .set_properties(**{
+                'width': '40px',
+                'text-align': 'center',
+                'font-size': '13px',
+                'border': '1px solid #e6e6e6'
+            })
             .set_table_styles([
-                {'selector': 'table', 'props': [('width', '100%')]},
+                {'selector': 'th', 'props': [
+                    ('background-color', '#f0f2f6'),
+                    ('color', '#0e1117'),
+                    ('font-weight', 'bold'),
+                    ('text-align', 'center')
+                ]},
+                {'selector': 'td', 'props': [
+                    ('text-align', 'center')
+                ]},
+                {'selector': 'table', 'props': [
+                    ('width', '100%'),
+                    ('margin', '0 auto')
+                ]}
             ]),
         use_container_width=True
     )
     
-    # BFI 테스트 섹션 (세로로 배치)
-    st.write("### BFI Test")
+    # BFI 테스트 섹션
+    st.markdown("---")  # 구분선 추가
+    st.markdown("""
+        <h3 style='text-align: center; color: #0e1117; background-color: #f0f2f6; 
+        padding: 1rem; border-radius: 5px;'>BFI Test</h3>
+    """, unsafe_allow_html=True)
     bfi_progress = st.progress(0)
     bfi_table = st.empty()
     
     # 초기 BFI 테이블 표시
     bfi_table.dataframe(
         bfi_df.fillna(0).round().astype(int).style
-            .background_gradient(cmap='YlOrRd')
+            .background_gradient(
+                cmap='YlOrRd',
+                vmin=1,
+                vmax=5
+            )
             .format("{:d}")
-            .set_properties(**{'width': '40px'})
+            .set_properties(**{
+                'width': '40px',
+                'text-align': 'center',
+                'font-size': '13px',
+                'border': '1px solid #e6e6e6'
+            })
             .set_table_styles([
-                {'selector': 'table', 'props': [('width', '100%')]},
+                {'selector': 'th', 'props': [
+                    ('background-color', '#f0f2f6'),
+                    ('color', '#0e1117'),
+                    ('font-weight', 'bold'),
+                    ('text-align', 'center')
+                ]},
+                {'selector': 'td', 'props': [
+                    ('text-align', 'center')
+                ]},
+                {'selector': 'table', 'props': [
+                    ('width', '100%'),
+                    ('margin', '0 auto')
+                ]}
             ]),
         use_container_width=True
     )
@@ -293,11 +361,32 @@ if st.button("테스트 시작"):
                 
                 ipip_table.dataframe(
                     ipip_df.fillna(0).round().astype(int).style
-                        .background_gradient(cmap='YlOrRd')
+                        .background_gradient(
+                            cmap='YlOrRd',
+                            vmin=1,
+                            vmax=5
+                        )
                         .format("{:d}")
-                        .set_properties(**{'width': '40px'})
+                        .set_properties(**{
+                            'width': '40px',
+                            'text-align': 'center',
+                            'font-size': '13px',
+                            'border': '1px solid #e6e6e6'
+                        })
                         .set_table_styles([
-                            {'selector': 'table', 'props': [('width', '100%')]},
+                            {'selector': 'th', 'props': [
+                                ('background-color', '#f0f2f6'),
+                                ('color', '#0e1117'),
+                                ('font-weight', 'bold'),
+                                ('text-align', 'center')
+                            ]},
+                            {'selector': 'td', 'props': [
+                                ('text-align', 'center')
+                            ]},
+                            {'selector': 'table', 'props': [
+                                ('width', '100%'),
+                                ('margin', '0 auto')
+                            ]}
                         ]),
                     use_container_width=True
                 )
@@ -329,11 +418,32 @@ if st.button("테스트 시작"):
                     
                     bfi_table.dataframe(
                         bfi_df.fillna(0).round().astype(int).style
-                            .background_gradient(cmap='YlOrRd')
+                            .background_gradient(
+                                cmap='YlOrRd',
+                                vmin=1,
+                                vmax=5
+                            )
                             .format("{:d}")
-                            .set_properties(**{'width': '40px'})
+                            .set_properties(**{
+                                'width': '40px',
+                                'text-align': 'center',
+                                'font-size': '13px',
+                                'border': '1px solid #e6e6e6'
+                            })
                             .set_table_styles([
-                                {'selector': 'table', 'props': [('width', '100%')]},
+                                {'selector': 'th', 'props': [
+                                    ('background-color', '#f0f2f6'),
+                                    ('color', '#0e1117'),
+                                    ('font-weight', 'bold'),
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'td', 'props': [
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'table', 'props': [
+                                    ('width', '100%'),
+                                    ('margin', '0 auto')
+                                ]}
                             ]),
                         use_container_width=True
                     )
