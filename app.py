@@ -190,7 +190,7 @@ Questions to rate:
             try:
                 return json.loads(response.text)
             except:
-                # JSON 형식이 아닌 경우 응답에서 JSON 부분만 추출 도
+                # JSON 형식이 아닌 경우 응답에서 JSON 부분만 추출 ���
                 import re
                 json_str = re.search(r'\{.*\}', response.text, re.DOTALL)
                 if json_str:
@@ -236,18 +236,39 @@ if st.button("테스트 시작"):
     ipip_df_full = ipip_df.copy()
     bfi_df_full = bfi_df.copy()
     
-    # 두 개의 컬럼으로 나누어 테스트 결과 표시
-    ipip_col, bfi_col = st.columns(2)
+    # IPIP 테스트 섹션
+    st.write("### IPIP Test")
+    ipip_progress = st.progress(0)
+    ipip_table = st.empty()
     
-    with ipip_col:
-        st.write("### IPIP Test 진행 중...")
-        ipip_progress = st.progress(0)
-        ipip_table = st.empty()
+    # 초기 IPIP 테이블 표시
+    ipip_table.dataframe(
+        ipip_df.fillna(0).round().astype(int).style
+            .background_gradient(cmap='YlOrRd')
+            .format("{:d}")
+            .set_properties(**{'width': '40px'})
+            .set_table_styles([
+                {'selector': 'table', 'props': [('width', '100%')]},
+            ]),
+        use_container_width=True
+    )
     
-    with bfi_col:
-        st.write("### BFI Test 진행 중...")
-        bfi_progress = st.progress(0)
-        bfi_table = st.empty()
+    # BFI 테스트 섹션 (세로로 배치)
+    st.write("### BFI Test")
+    bfi_progress = st.progress(0)
+    bfi_table = st.empty()
+    
+    # 초기 BFI 테이블 표시
+    bfi_table.dataframe(
+        bfi_df.fillna(0).round().astype(int).style
+            .background_gradient(cmap='YlOrRd')
+            .format("{:d}")
+            .set_properties(**{'width': '40px'})
+            .set_table_styles([
+                {'selector': 'table', 'props': [('width', '100%')]},
+            ]),
+        use_container_width=True
+    )
     
     # 모든 페르소나에 대해 두 테스트 동시 실행
     for i, persona in enumerate(test_personas):
@@ -311,12 +332,6 @@ if st.button("테스트 시작"):
                     )
             except Exception as e:
                 st.error(f"BFI 점수 처리 중 오류: {str(e)}")
-    
-    with ipip_col:
-        st.write("### IPIP Test 완료")
-    
-    with bfi_col:
-        st.write("### BFI Test 완료")
     
     # CSV 파일 생성
     csv_data = pd.concat([
