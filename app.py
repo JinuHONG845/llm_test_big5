@@ -78,11 +78,39 @@ except json.JSONDecodeError as e:
     st.stop()
 
 # LLM 선택 및 설정
-col1, col2 = st.columns([2, 3])
+col1, col2, col3 = st.columns([2, 2, 3])
+
 with col1:
-    llm_choice = st.radio("LLM 선택", ("GPT-4", "Claude 3", "Gemini Pro"), horizontal=True)
+    llm_provider = st.radio(
+        "LLM 제공자",
+        ("OpenAI", "Anthropic", "Google"),
+        horizontal=True
+    )
 
 with col2:
+    if llm_provider == "OpenAI":
+        llm_model = st.radio(
+            "모델 선택",
+            ("GPT-4 Turbo", "GPT-3.5 Turbo"),
+            horizontal=True,
+            help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다."
+        )
+    elif llm_provider == "Anthropic":
+        llm_model = st.radio(
+            "모델 선택",
+            ("Claude 3 Sonnet", "Claude 3 Haiku"),
+            horizontal=True,
+            help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다."
+        )
+    else:  # Google
+        llm_model = st.radio(
+            "모델 선택",
+            ("Gemini Pro", "Gemini Nano"),
+            horizontal=True,
+            help="Gemini Pro는 더 정확하지만 느립니다. Gemini Nano는 더 빠르지만 정확도가 낮을 수 있습니다."
+        )
+
+with col3:
     test_mode = st.radio(
         "테스트 모드 선택",
         ("전체 테스트", "간이 테스트 (랜덤 3개 페르소나)"),
@@ -91,19 +119,19 @@ with col2:
     )
 
 # API 키 설정
-if llm_choice == "GPT-4":
+if llm_provider == "OpenAI":
     api_key = st.secrets.get("OPENAI_API_KEY")
     if not api_key:
         st.error("OpenAI API 키가 설정되지 않았습니다.")
         st.stop()
     openai.api_key = api_key
-elif llm_choice == "Claude 3":
+elif llm_provider == "Anthropic":
     api_key = st.secrets.get("ANTHROPIC_API_KEY")
     if not api_key:
         st.error("Anthropic API 키가 설정되지 않았습니다.")
         st.stop()
     client = anthropic.Anthropic(api_key=api_key)
-else:  # Gemini Pro
+else:  # Google
     api_key = st.secrets.get("GOOGLE_API_KEY")
     if not api_key:
         st.error("Google API 키가 설정되지 않았습니다.")
@@ -161,31 +189,34 @@ Questions to rate:
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                if llm_choice == "GPT-4":
+                if llm_provider == "OpenAI":
+                    model_name = "gpt-4-turbo-preview" if llm_model == "GPT-4 Turbo" else "gpt-3.5-turbo"
                     response = openai.chat.completions.create(
-                        model="gpt-4-turbo-preview",
+                        model=model_name,
                         messages=[
                             {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
                             {"role": "user", "content": prompt}
                         ],
                         temperature=1.0,
-                        timeout=30  # 30초 타임아웃 설정
+                        timeout=30
                     )
                     content = response.choices[0].message.content
                     
-                elif llm_choice == "Claude 3":
+                elif llm_provider == "Anthropic":
+                    model_name = "claude-3-sonnet-20240229" if llm_model == "Claude 3 Sonnet" else "claude-3-haiku-20240307"
                     response = client.messages.create(
-                        model="claude-3-sonnet-20240229",
+                        model=model_name,
                         max_tokens=2000,
                         system="You are a helpful assistant that responds only in valid JSON format.",
                         messages=[{"role": "user", "content": prompt}],
                         temperature=1.0,
-                        timeout=30  # 30초 타임아웃 설정
+                        timeout=30
                     )
                     content = response.content[0].text
                     
-                else:  # Gemini Pro
-                    model = genai.GenerativeModel('gemini-pro')
+                else:  # Google
+                    model_name = 'gemini-pro' if llm_model == "Gemini Pro" else 'gemini-nano'
+                    model = genai.GenerativeModel(model_name)
                     response = model.generate_content(
                         prompt,
                         generation_config=genai.types.GenerationConfig(
@@ -229,8 +260,17 @@ Questions to rate:
         st.error(f"치명적인 오류 발생: {str(e)}")
         raise e
 
+# 배치 크기 조정 (모델에 따라)
+def get_batch_size(model):
+    if model in ["GPT-4 Turbo", "Claude 3 Sonnet", "Gemini Pro"]:
+        return 25, 5  # IPIP 배치 크기, BFI 배치 크기
+    else:
+        return 10, 3  # 더 작은 배치 크기
+
 # 테스트 실행 버튼
 if st.button("테스트 시작"):
+    ipip_batch_size, bfi_batch_size = get_batch_size(llm_model)
+    
     all_results = {}
     
     # 테스트할 페르소나 선택
@@ -350,9 +390,9 @@ if st.button("테스트 시작"):
     for i, persona in enumerate(test_personas):
         all_ipip_scores = []
         # 배치 크기를 25개로 줄임
-        for j in range(0, 300, 25):  
+        for j in range(0, 300, ipip_batch_size):  
             try:
-                batch_end = min(j + 25, 300)  # 마지막 배치 처리
+                batch_end = min(j + ipip_batch_size, 300)  # 마지막 배치 처리
                 batch_questions = ipip_questions['items'][j:batch_end]
                 
                 # 재시도 횟수 증가
@@ -420,9 +460,9 @@ if st.button("테스트 시작"):
     
     # BFI 테스트 실행 - 배치 크기를 더 작게 조정
     for i, persona in enumerate(test_personas):
-        for j in range(0, 44, 5):  # 5개씩 배치 처리
+        for j in range(0, 44, bfi_batch_size):  # 5개씩 배치 처리
             try:
-                batch_end = min(j + 5, 44)
+                batch_end = min(j + bfi_batch_size, 44)
                 batch_questions = bfi_questions[j:batch_end]
                 
                 # 재시도 횟수 증가
