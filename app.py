@@ -190,7 +190,7 @@ Questions to rate:
             try:
                 return json.loads(response.text)
             except:
-                # JSON 형식이 아닌 경우 응답에서 JSON 부분만 추출 ���
+                # JSON 형식이 아닌 경우 응답에서 JSON 부분만 추출 
                 import re
                 json_str = re.search(r'\{.*\}', response.text, re.DOTALL)
                 if json_str:
@@ -270,9 +270,8 @@ if st.button("테스트 시작"):
         use_container_width=True
     )
     
-    # 모든 페르소나에 대해 두 테스트 동시 실행
+    # IPIP 테스트 실행
     for i, persona in enumerate(test_personas):
-        # IPIP 테스트
         all_ipip_scores = []
         for j in range(0, 300, 50):
             batch_questions = ipip_questions['items'][j:j+50]
@@ -289,7 +288,6 @@ if st.button("테스트 시작"):
                 ipip_df_full.iloc[i] = current_scores
                 ipip_df_full.loc['Average'] = ipip_df_full.iloc[:-1].mean()
                 
-                # IPIP 진행률 업데이트
                 progress = (i * 300 + j + len(scores)) / (len(test_personas) * 300)
                 ipip_progress.progress(progress)
                 
@@ -303,22 +301,31 @@ if st.button("테스트 시작"):
                         ]),
                     use_container_width=True
                 )
-        
-        # BFI 테스트
-        bfi_responses = get_llm_response(persona, bfi_questions[:44], 'BFI')
-        if bfi_responses and 'responses' in bfi_responses:
-            try:
-                scores = [r['score'] for r in bfi_responses['responses']]
-                if len(scores) == len(bfi_df.columns):
-                    bfi_df.iloc[i] = scores
+    
+    st.write("IPIP Test 완료")
+    
+    # BFI 테스트 실행 - 배치 크기를 더 작게 설정
+    for i, persona in enumerate(test_personas):
+        for j in range(0, 44, 10):  # 10개씩 배치 처리
+            end_idx = min(j + 10, 44)  # 마지막 배치는 4개만 처리
+            batch_questions = bfi_questions[j:end_idx]
+            bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
+            
+            if bfi_responses and 'responses' in bfi_responses:
+                try:
+                    scores = [r['score'] for r in bfi_responses['responses']]
+                    current_scores = bfi_df.iloc[i].copy()
+                    current_scores[j:j+len(scores)] = scores
+                    bfi_df.iloc[i] = current_scores
                     bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                     
-                    bfi_df_full.iloc[i] = scores
+                    bfi_df_full.iloc[i] = current_scores
                     bfi_df_full.loc['Average'] = bfi_df_full.iloc[:-1].mean()
                     
-                    # BFI 진행률 업데이트
-                    progress = (i + 1) / len(test_personas)
-                    bfi_progress.progress(progress)
+                    # 진행률 계산 수정
+                    total_questions = len(test_personas) * 44
+                    current_progress = (i * 44 + end_idx) / total_questions
+                    bfi_progress.progress(current_progress)
                     
                     bfi_table.dataframe(
                         bfi_df.fillna(0).round().astype(int).style
@@ -330,8 +337,10 @@ if st.button("테스트 시작"):
                             ]),
                         use_container_width=True
                     )
-            except Exception as e:
-                st.error(f"BFI 점수 처리 중 오류: {str(e)}")
+                except Exception as e:
+                    st.error(f"BFI 점수 처리 중 오류: {str(e)}")
+    
+    st.write("BFI Test 완료")
     
     # CSV 파일 생성
     csv_data = pd.concat([
