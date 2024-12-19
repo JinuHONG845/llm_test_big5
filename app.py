@@ -6,7 +6,7 @@ import openai
 import anthropic
 import google.generativeai as genai
 import time
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 import random  # 파일 상단에 추가
 
 # 페이지 설정
@@ -111,31 +111,38 @@ else:  # Gemini Pro
     genai.configure(api_key=api_key)
 
 @retry(
-    stop=stop_after_attempt(3),  # 최대 3번 재시도
-    wait=wait_exponential(multiplier=1, min=4, max=10),  # 4~10초 사이 대기시간
-    retry_error_callback=lambda retry_state: None  # 실패시 None 반환
+    stop=stop_after_attempt(5),  # 최대 5번 재시도
+    wait=wait_exponential(multiplier=1, min=4, max=20),  # 4~20초 사이 대기시간
+    retry=(
+        retry_if_exception_type(openai.APIError) |
+        retry_if_exception_type(openai.APIConnectionError) |
+        retry_if_exception_type(openai.RateLimitError) |
+        retry_if_exception_type(anthropic.APIError) |
+        retry_if_exception_type(anthropic.APIConnectionError) |
+        retry_if_exception_type(anthropic.RateLimitError)
+    )
 )
 def get_llm_response(persona, questions, test_type):
     """LLM을 사용하여 페르소나의 테스트 응답을 생성"""
-    
-    # 질문 목록 준비
-    if test_type == 'IPIP':
-        question_list = [q['item'] for q in questions]
-        scale_description = """1 = Very inaccurate
+    try:
+        # 질문 목록 준비
+        if test_type == 'IPIP':
+            question_list = [q['item'] for q in questions]
+            scale_description = """1 = Very inaccurate
 2 = Moderately inaccurate
 3 = Neither
 4 = Moderately accurate
 5 = Very accurate"""
-    else:  # BFI
-        question_list = [q['question'] for q in questions]
-        scale_description = """1 = Disagree Strongly
+        else:  # BFI
+            question_list = [q['question'] for q in questions]
+            scale_description = """1 = Disagree Strongly
 2 = Disagree a little
 3 = Neither agree nor disagree
 4 = Agree a little
 5 = Agree strongly"""
-    
-    # 프롬프트 구성
-    prompt = f"""Based on this persona: {', '.join(persona['personality'])}
+        
+        # 프롬프트 구성
+        prompt = f"""Based on this persona: {', '.join(persona['personality'])}
 
 For each question, provide a rating from 1-5 where:
 {scale_description}
@@ -149,77 +156,78 @@ Return ONLY a JSON object in this exact format:
 }}
 
 Questions to rate:
-{json.dumps(question_list[:50], indent=2)}"""
-    
-    try:
-        if llm_choice == "GPT-4":
-            response = openai.chat.completions.create(
-                model="gpt-4-turbo-preview",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=1.0
-            )
-            content = response.choices[0].message.content
-            if content.startswith('```') and content.endswith('```'):
-                content = content.split('```')[1]
-                if content.startswith('json'):
-                    content = content[4:]
-            result = json.loads(content.strip())
-            
-            # 응답 검증
-            if not result or 'responses' not in result or len(result['responses']) < len(question_list):
-                raise ValueError("불완전�� 응답")
-                
-            time.sleep(2)  # API 호출 사이에 2초 대기
-            return result
+{json.dumps(question_list, indent=2)}"""
         
-        elif llm_choice == "Claude 3":
-            response = client.messages.create(
-                model="claude-3-sonnet-20240229",
-                max_tokens=2000,
-                system="You are a helpful assistant that responds only in valid JSON format.",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=1.0
-            )
-            result = json.loads(response.content[0].text)
-            
-            # 응답 검증
-            if not result or 'responses' not in result or len(result['responses']) < len(question_list):
-                raise ValueError("불완전한 응답")
-                
-            time.sleep(2)  # API 호출 사이에 2초 대기
-            return result
-        
-        else:  # Gemini Pro
-            model = genai.GenerativeModel('gemini-pro')
-            response = model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=1.0
-                )
-            )
+        max_retries = 3
+        for attempt in range(max_retries):
             try:
-                return json.loads(response.text)
-            except:
-                # JSON 형식이 아닌 경우 응답에서 JSON 부분만 추출 
-                import re
-                json_str = re.search(r'\{.*\}', response.text, re.DOTALL)
-                if json_str:
-                    return json.loads(json_str.group())
-                raise Exception("Invalid JSON response")
-            
+                if llm_choice == "GPT-4":
+                    response = openai.chat.completions.create(
+                        model="gpt-4-turbo-preview",
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=1.0,
+                        timeout=30  # 30초 타임아웃 설정
+                    )
+                    content = response.choices[0].message.content
+                    
+                elif llm_choice == "Claude 3":
+                    response = client.messages.create(
+                        model="claude-3-sonnet-20240229",
+                        max_tokens=2000,
+                        system="You are a helpful assistant that responds only in valid JSON format.",
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=1.0,
+                        timeout=30  # 30초 타임아웃 설정
+                    )
+                    content = response.content[0].text
+                    
+                else:  # Gemini Pro
+                    model = genai.GenerativeModel('gemini-pro')
+                    response = model.generate_content(
+                        prompt,
+                        generation_config=genai.types.GenerationConfig(
+                            temperature=1.0
+                        )
+                    )
+                    content = response.text
+                
+                # JSON 파싱 및 검증
+                if content.startswith('```') and content.endswith('```'):
+                    content = content.split('```')[1]
+                    if content.startswith('json'):
+                        content = content[4:]
+                
+                result = json.loads(content.strip())
+                
+                # 응답 검증
+                if not result or 'responses' not in result:
+                    raise ValueError("Invalid response format")
+                if len(result['responses']) != len(question_list):
+                    raise ValueError("Incomplete response")
+                
+                time.sleep(2)  # API 호출 사이에 2초 대기
+                return result
+                
+            except (json.JSONDecodeError, ValueError) as e:
+                if attempt == max_retries - 1:
+                    st.error(f"응답 처리 중 오류 발생: {str(e)}")
+                    raise e
+                time.sleep(2 ** attempt)  # 지수 백오프
+                continue
+                
+            except Exception as e:
+                st.error(f"LLM API 오류: {str(e)}")
+                if attempt == max_retries - 1:
+                    raise e
+                time.sleep(2 ** attempt)
+                continue
+                
     except Exception as e:
-        st.error(f"LLM API 오류: {str(e)}")
-        st.write("프롬프트:", prompt)
-        st.write("응답:", response if 'response' in locals() else "No response")
-        raise e  # 재시도를 위해 예외를 다시 발생
+        st.error(f"치명적인 오류 발생: {str(e)}")
+        raise e
 
 # 테스트 실행 버튼
 if st.button("테스트 시작"):
@@ -341,114 +349,140 @@ if st.button("테스트 시작"):
     # IPIP 테스트 실행
     for i, persona in enumerate(test_personas):
         all_ipip_scores = []
-        for j in range(0, 300, 50):
-            batch_questions = ipip_questions['items'][j:j+50]
-            ipip_responses = get_llm_response(persona, batch_questions, 'IPIP')
-            if ipip_responses and 'responses' in ipip_responses:
-                scores = [r['score'] for r in ipip_responses['responses']]
-                all_ipip_scores.extend(scores)
+        # 배치 크기를 25개로 줄임
+        for j in range(0, 300, 25):  
+            try:
+                batch_end = min(j + 25, 300)  # 마지막 배치 처리
+                batch_questions = ipip_questions['items'][j:batch_end]
                 
-                current_scores = ipip_df.iloc[i].copy()
-                current_scores[j:j+len(scores)] = scores
-                ipip_df.iloc[i] = current_scores
-                ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
-                
-                ipip_df_full.iloc[i] = current_scores
-                ipip_df_full.loc['Average'] = ipip_df_full.iloc[:-1].mean()
-                
-                progress = (i * 300 + j + len(scores)) / (len(test_personas) * 300)
-                ipip_progress.progress(progress)
-                
-                ipip_table.dataframe(
-                    ipip_df.fillna(0).round().astype(int).style
-                        .background_gradient(
-                            cmap='YlOrRd',
-                            vmin=1,
-                            vmax=5
-                        )
-                        .format("{:d}")
-                        .set_properties(**{
-                            'width': '40px',
-                            'text-align': 'center',
-                            'font-size': '13px',
-                            'border': '1px solid #e6e6e6'
-                        })
-                        .set_table_styles([
-                            {'selector': 'th', 'props': [
-                                ('background-color', '#f0f2f6'),
-                                ('color', '#0e1117'),
-                                ('font-weight', 'bold'),
-                                ('text-align', 'center')
-                            ]},
-                            {'selector': 'td', 'props': [
-                                ('text-align', 'center')
-                            ]},
-                            {'selector': 'table', 'props': [
-                                ('width', '100%'),
-                                ('margin', '0 auto')
-                            ]}
-                        ]),
-                    use_container_width=True
-                )
-    
+                # 재시도 횟수 증가
+                for retry_count in range(3):  
+                    try:
+                        ipip_responses = get_llm_response(persona, batch_questions, 'IPIP')
+                        if ipip_responses and 'responses' in ipip_responses:
+                            scores = [r['score'] for r in ipip_responses['responses']]
+                            all_ipip_scores.extend(scores)
+                            
+                            current_scores = ipip_df.iloc[i].copy()
+                            current_scores[j:j+len(scores)] = scores
+                            ipip_df.iloc[i] = current_scores
+                            ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
+                            
+                            ipip_df_full.iloc[i] = current_scores
+                            ipip_df_full.loc['Average'] = ipip_df_full.iloc[:-1].mean()
+                            
+                            progress = (i * 300 + j + len(scores)) / (len(test_personas) * 300)
+                            ipip_progress.progress(progress)
+                            
+                            ipip_table.dataframe(
+                                ipip_df.fillna(0).round().astype(int).style
+                                    .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                                    .format("{:d}")
+                                    .set_properties(**{
+                                        'width': '40px',
+                                        'text-align': 'center',
+                                        'font-size': '13px',
+                                        'border': '1px solid #e6e6e6'
+                                    })
+                                    .set_table_styles([
+                                        {'selector': 'th', 'props': [
+                                            ('background-color', '#f0f2f6'),
+                                            ('color', '#0e1117'),
+                                            ('font-weight', 'bold'),
+                                            ('text-align', 'center')
+                                        ]},
+                                        {'selector': 'td', 'props': [
+                                            ('text-align', 'center')
+                                        ]},
+                                        {'selector': 'table', 'props': [
+                                            ('width', '100%'),
+                                            ('margin', '0 auto')
+                                        ]}
+                                    ]),
+                                use_container_width=True
+                            )
+                            
+                            time.sleep(3)  # API 호출 간격 증가
+                            break  # 성공시 재시도 루프 종료
+                            
+                    except Exception as e:
+                        if retry_count == 2:  # 마지막 시도였을 경우
+                            st.error(f"IPIP 배치 처리 중 오류 발생 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                            raise e
+                        time.sleep(5 * (retry_count + 1))  # 재시도 간격 증가
+                        continue
+                        
+            except Exception as e:
+                st.error(f"IPIP 테스트 중단 (페르소나 {i+1}): {str(e)}")
+                raise e
+
     st.write("IPIP Test 완료")
     
-    # BFI 테스트 실행 - 배치 크기를 더 작게 설정
+    # BFI 테스트 실행 - 배치 크기를 더 작게 조정
     for i, persona in enumerate(test_personas):
-        for j in range(0, 44, 10):  # 10개씩 배치 처리
-            end_idx = min(j + 10, 44)  # 마지막 배치는 4개만 처리
-            batch_questions = bfi_questions[j:end_idx]
-            bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
-            
-            if bfi_responses and 'responses' in bfi_responses:
-                try:
-                    scores = [r['score'] for r in bfi_responses['responses']]
-                    current_scores = bfi_df.iloc[i].copy()
-                    current_scores[j:j+len(scores)] = scores
-                    bfi_df.iloc[i] = current_scores
-                    bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
-                    
-                    bfi_df_full.iloc[i] = current_scores
-                    bfi_df_full.loc['Average'] = bfi_df_full.iloc[:-1].mean()
-                    
-                    # 진행률 계산 수정
-                    total_questions = len(test_personas) * 44
-                    current_progress = (i * 44 + end_idx) / total_questions
-                    bfi_progress.progress(current_progress)
-                    
-                    bfi_table.dataframe(
-                        bfi_df.fillna(0).round().astype(int).style
-                            .background_gradient(
-                                cmap='YlOrRd',
-                                vmin=1,
-                                vmax=5
+        for j in range(0, 44, 5):  # 5개씩 배치 처리
+            try:
+                batch_end = min(j + 5, 44)
+                batch_questions = bfi_questions[j:batch_end]
+                
+                # 재시도 횟수 증가
+                for retry_count in range(3):
+                    try:
+                        bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
+                        if bfi_responses and 'responses' in bfi_responses:
+                            scores = [r['score'] for r in bfi_responses['responses']]
+                            current_scores = bfi_df.iloc[i].copy()
+                            current_scores[j:j+len(scores)] = scores
+                            bfi_df.iloc[i] = current_scores
+                            bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
+                            
+                            bfi_df_full.iloc[i] = current_scores
+                            bfi_df_full.loc['Average'] = bfi_df_full.iloc[:-1].mean()
+                            
+                            progress = (i * 44 + batch_end) / (len(test_personas) * 44)
+                            bfi_progress.progress(progress)
+                            
+                            bfi_table.dataframe(
+                                bfi_df.fillna(0).round().astype(int).style
+                                    .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                                    .format("{:d}")
+                                    .set_properties(**{
+                                        'width': '40px',
+                                        'text-align': 'center',
+                                        'font-size': '13px',
+                                        'border': '1px solid #e6e6e6'
+                                    })
+                                    .set_table_styles([
+                                        {'selector': 'th', 'props': [
+                                            ('background-color', '#f0f2f6'),
+                                            ('color', '#0e1117'),
+                                            ('font-weight', 'bold'),
+                                            ('text-align', 'center')
+                                        ]},
+                                        {'selector': 'td', 'props': [
+                                            ('text-align', 'center')
+                                        ]},
+                                        {'selector': 'table', 'props': [
+                                            ('width', '100%'),
+                                            ('margin', '0 auto')
+                                        ]}
+                                    ]),
+                                use_container_width=True
                             )
-                            .format("{:d}")
-                            .set_properties(**{
-                                'width': '40px',
-                                'text-align': 'center',
-                                'font-size': '13px',
-                                'border': '1px solid #e6e6e6'
-                            })
-                            .set_table_styles([
-                                {'selector': 'th', 'props': [
-                                    ('background-color', '#f0f2f6'),
-                                    ('color', '#0e1117'),
-                                    ('font-weight', 'bold'),
-                                    ('text-align', 'center')
-                                ]},
-                                {'selector': 'td', 'props': [
-                                    ('text-align', 'center')
-                                ]},
-                                {'selector': 'table', 'props': [
-                                    ('width', '100%'),
-                                    ('margin', '0 auto')
-                                ]}
-                            ]),
-                        use_container_width=True
-                    )
-                except Exception as e:
-                    st.error(f"BFI 점수 처리 중 오류: {str(e)}")
+                            
+                            time.sleep(3)  # API 호출 간격 증가
+                            break  # 성공시 재시도 루프 종료
+                            
+                    except Exception as e:
+                        if retry_count == 2:  # 마지막 시도였을 경우
+                            st.error(f"BFI 배치 처리 중 오류 발생 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                            raise e
+                        time.sleep(5 * (retry_count + 1))  # 재시도 간격 증가
+                        continue
+                        
+            except Exception as e:
+                st.error(f"BFI 테스트 중단 (페르소나 {i+1}): {str(e)}")
+                raise e
     
     st.write("BFI Test 완료")
     
