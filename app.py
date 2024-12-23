@@ -114,9 +114,9 @@ with col2:
 # 테스트 모드 선택
 test_mode = st.radio(
     "테스트 모드 선택",
-    ("전체 테스트", "간이 테스트 (랜덤 3개 페르소나)"),
+    ("전체 테스트 (분할 실행)", "간이 테스트 (랜덤 3개 페르소나)"),
     horizontal=True,
-    help="간이 테스트는 전체 페르소나 중 무작위로 3개를 선택하여 진행합니다."
+    help="전체 테스트는 10개씩 분할하여 진행합니다. 간이 테스트는 무작위로 3개를 선택합니다."
 )
 
 # API 키 설정
@@ -152,7 +152,7 @@ else:  # Gemini
     )
 )
 def get_llm_response(persona, questions, test_type):
-    """LLM을 사용하여 페르소나의 테스트 응답을 생성"""
+    """LLM을 사용하�� 페르소나의 테스트 응답을 생성"""
     try:
         # 질문 목록 준비
         if test_type == 'IPIP':
@@ -268,130 +268,75 @@ def get_batch_size(model):
     else:
         return 10, 3  # 더 작은 배치 크기
 
-# 테스트 실행 버튼
-if st.button("테스트 시작"):
-    ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
+# 세션 상태 초기화
+if 'accumulated_results' not in st.session_state:
+    st.session_state.accumulated_results = {
+        'ipip': pd.DataFrame(),
+        'bfi': pd.DataFrame(),
+        'completed_batches': set()
+    }
+
+if test_mode == "전체 테스트 (분할 실행)":
+    st.write("### 테스트 배치 선택")
+    col1, col2, col3, col4, col5 = st.columns(5)
     
-    all_results = {}
+    with col1:
+        batch1 = st.button("1-10번", 
+                          disabled='batch1' in st.session_state.accumulated_results['completed_batches'])
+    with col2:
+        batch2 = st.button("11-20번", 
+                          disabled='batch2' in st.session_state.accumulated_results['completed_batches'])
+    with col3:
+        batch3 = st.button("21-30번", 
+                          disabled='batch3' in st.session_state.accumulated_results['completed_batches'])
+    with col4:
+        batch4 = st.button("31-40번", 
+                          disabled='batch4' in st.session_state.accumulated_results['completed_batches'])
+    with col5:
+        batch5 = st.button("41-50번", 
+                          disabled='batch5' in st.session_state.accumulated_results['completed_batches'])
+
+    # 진행 상황 표시
+    completed = len(st.session_state.accumulated_results['completed_batches'])
+    st.progress(completed / 5)
+    st.write(f"완료된 배치: {completed}/5")
+
+    # 초기화 버튼
+    if st.button("테스트 초기화"):
+        st.session_state.accumulated_results = {
+            'ipip': pd.DataFrame(),
+            'bfi': pd.DataFrame(),
+            'completed_batches': set()
+        }
+        st.experimental_rerun()
+
+def run_batch_test(batch_name, start_idx, end_idx):
+    batch_personas = personas[start_idx:end_idx]
     
-    # 테스트할 페르소나 선택
-    if test_mode == "간이 테스트 (랜덤 3개 페르소나)":
-        test_personas = random.sample(personas, 3)
+    # DataFrame 초기화 또는 기존 결과 불러오기
+    if st.session_state.accumulated_results['ipip'].empty:
+        ipip_df = pd.DataFrame(
+            np.nan, 
+            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
+            columns=[f"Q{i+1}" for i in range(300)]
+        )
     else:
-        test_personas = personas
+        ipip_df = st.session_state.accumulated_results['ipip'].copy()
     
-    # 선택된 페르소나 정보 표시
-    if test_mode == "간이 테스트 (랜덤 3개 페르소나)":
-        st.write("### 선택된 페르소나")
-        for i, persona in enumerate(test_personas, 1):
-            st.write(f"페르소나 {i}: {', '.join(persona['personality'])}")
-        st.write("---")
-    
-    # 빈이터프레임 초기화
-    ipip_df = pd.DataFrame(
-        np.nan, 
-        index=[f"Persona {i+1}" for i in range(len(test_personas))] + ['Average'],
-        columns=[f"Q{i+1}" for i in range(300)]
-    )
-    bfi_df = pd.DataFrame(
-        np.nan, 
-        index=[f"Persona {i+1}" for i in range(len(test_personas))] + ['Average'],
-        columns=[f"Q{i+1}" for i in range(44)]
-    )
-    
-    # CSV 저장용 데이터프레임
-    ipip_df_full = ipip_df.copy()
-    bfi_df_full = bfi_df.copy()
-    
-    # IPIP 테스트 섹션
-    st.markdown("---")  # 구분선 추가
-    st.markdown("""
-        <h3 style='text-align: center; color: #0e1117; background-color: #f0f2f6; 
-        padding: 1rem; border-radius: 5px;'>IPIP Test</h3>
-    """, unsafe_allow_html=True)
-    ipip_progress = st.progress(0)
-    ipip_table = st.empty()
-    
-    # 초기 IPIP 테이블 표시
-    ipip_table.dataframe(
-        ipip_df.fillna(0).round().astype(int).style
-            .background_gradient(
-                cmap='YlOrRd',
-                vmin=1,
-                vmax=5
-            )
-            .format("{:d}")
-            .set_properties(**{
-                'width': '40px',
-                'text-align': 'center',
-                'font-size': '13px',
-                'border': '1px solid #e6e6e6'
-            })
-            .set_table_styles([
-                {'selector': 'th', 'props': [
-                    ('background-color', '#f0f2f6'),
-                    ('color', '#0e1117'),
-                    ('font-weight', 'bold'),
-                    ('text-align', 'center')
-                ]},
-                {'selector': 'td', 'props': [
-                    ('text-align', 'center')
-                ]},
-                {'selector': 'table', 'props': [
-                    ('width', '100%'),
-                    ('margin', '0 auto')
-                ]}
-            ]),
-        use_container_width=True
-    )
-    
-    # BFI 테스트 섹션
-    st.markdown("---")  # 구분선 추가
-    st.markdown("""
-        <h3 style='text-align: center; color: #0e1117; background-color: #f0f2f6; 
-        padding: 1rem; border-radius: 5px;'>BFI Test</h3>
-    """, unsafe_allow_html=True)
-    bfi_progress = st.progress(0)
-    bfi_table = st.empty()
-    
-    # 초기 BFI 테이블 표시
-    bfi_table.dataframe(
-        bfi_df.fillna(0).round().astype(int).style
-            .background_gradient(
-                cmap='YlOrRd',
-                vmin=1,
-                vmax=5
-            )
-            .format("{:d}")
-            .set_properties(**{
-                'width': '40px',
-                'text-align': 'center',
-                'font-size': '13px',
-                'border': '1px solid #e6e6e6'
-            })
-            .set_table_styles([
-                {'selector': 'th', 'props': [
-                    ('background-color', '#f0f2f6'),
-                    ('color', '#0e1117'),
-                    ('font-weight', 'bold'),
-                    ('text-align', 'center')
-                ]},
-                {'selector': 'td', 'props': [
-                    ('text-align', 'center')
-                ]},
-                {'selector': 'table', 'props': [
-                    ('width', '100%'),
-                    ('margin', '0 auto')
-                ]}
-            ]),
-        use_container_width=True
-    )
-    
-    # IPIP 테스트 실행
-    for i, persona in enumerate(test_personas):
+    if st.session_state.accumulated_results['bfi'].empty:
+        bfi_df = pd.DataFrame(
+            np.nan, 
+            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
+            columns=[f"Q{i+1}" for i in range(44)]
+        )
+    else:
+        bfi_df = st.session_state.accumulated_results['bfi'].copy()
+
+    # 테스트 실행
+    for i, persona in enumerate(batch_personas, start=start_idx):
+        # IPIP 테스트
         all_ipip_scores = []
-        # 배치 크기를 25개로 줄임
-        for j in range(0, 300, ipip_batch_size):  
+        for j in range(0, 300, ipip_batch_size):
             try:
                 batch_end = min(j + ipip_batch_size, 300)  # 마지막 배치 처리
                 batch_questions = ipip_questions['items'][j:batch_end]
@@ -409,10 +354,7 @@ if st.button("테스트 시작"):
                             ipip_df.iloc[i] = current_scores
                             ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
                             
-                            ipip_df_full.iloc[i] = current_scores
-                            ipip_df_full.loc['Average'] = ipip_df_full.iloc[:-1].mean()
-                            
-                            progress = (i * 300 + j + len(scores)) / (len(test_personas) * 300)
+                            progress = (i * 300 + j + len(scores)) / (len(personas) * 300)
                             ipip_progress.progress(progress)
                             
                             ipip_table.dataframe(
@@ -457,11 +399,8 @@ if st.button("테스트 시작"):
                 st.error(f"IPIP 테스트 중단 (페르소나 {i+1}): {str(e)}")
                 raise e
 
-    st.write("IPIP Test 완료")
-    
-    # BFI 테스트 실행 - 배치 크기를 더 작게 조정
-    for i, persona in enumerate(test_personas):
-        for j in range(0, 44, bfi_batch_size):  # 5개씩 배치 처리
+        # BFI 테스트
+        for j in range(0, 44, bfi_batch_size):
             try:
                 batch_end = min(j + bfi_batch_size, 44)
                 batch_questions = bfi_questions[j:batch_end]
@@ -477,10 +416,7 @@ if st.button("테스트 시작"):
                             bfi_df.iloc[i] = current_scores
                             bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                             
-                            bfi_df_full.iloc[i] = current_scores
-                            bfi_df_full.loc['Average'] = bfi_df_full.iloc[:-1].mean()
-                            
-                            progress = (i * 44 + batch_end) / (len(test_personas) * 44)
+                            progress = (i * 44 + batch_end) / (len(personas) * 44)
                             bfi_progress.progress(progress)
                             
                             bfi_table.dataframe(
@@ -524,21 +460,39 @@ if st.button("테스트 시작"):
             except Exception as e:
                 st.error(f"BFI 테스트 중단 (페르소나 {i+1}): {str(e)}")
                 raise e
-    
-    st.write("BFI Test 완료")
-    
-    # CSV 파일 생성
+
+    # 결과 누적 저장
+    st.session_state.accumulated_results['ipip'] = ipip_df
+    st.session_state.accumulated_results['bfi'] = bfi_df
+    st.session_state.accumulated_results['completed_batches'].add(batch_name)
+
+    return ipip_df, bfi_df
+
+# 배치 버튼 클릭 처리
+if test_mode == "전체 테스트 (분할 실행)":
+    if batch1:
+        ipip_df, bfi_df = run_batch_test('batch1', 0, 10)
+    elif batch2:
+        ipip_df, bfi_df = run_batch_test('batch2', 10, 20)
+    elif batch3:
+        ipip_df, bfi_df = run_batch_test('batch3', 20, 30)
+    elif batch4:
+        ipip_df, bfi_df = run_batch_test('batch4', 30, 40)
+    elif batch5:
+        ipip_df, bfi_df = run_batch_test('batch5', 40, 50)
+elif test_mode == "간이 테스트 (랜덤 3개 페르소나)":
+    # ... (기존 간이 테스트 코드) ...
+
+# CSV 파일 생성 및 다운로드 부분
+if not st.session_state.accumulated_results['ipip'].empty:
     csv_data = pd.concat([
-        ipip_df_full.add_prefix('IPIP_Q'),
-        bfi_df_full.add_prefix('BFI_Q')
+        st.session_state.accumulated_results['ipip'].add_prefix('IPIP_Q'),
+        st.session_state.accumulated_results['bfi'].add_prefix('BFI_Q')
     ], axis=1)
     
-    # 결과 다운로드 버튼
     st.download_button(
         label="결과 다운로드 (CSV)",
         data=csv_data.to_csv(index=True, float_format='%.10f'),
         file_name="personality_test_results.csv",
         mime="text/csv"
     )
-    
-    st.success("모든 테스트가 완료되었습니다!")
