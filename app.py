@@ -152,7 +152,7 @@ else:  # Gemini
     )
 )
 def get_llm_response(persona, questions, test_type):
-    """LLM을 사용하�� 페르소나의 테스트 응답을 생성"""
+    """LLM을 사용하여 페르소나의 테스트 응답을 생성"""
     try:
         # 질문 목록 준비
         if test_type == 'IPIP':
@@ -481,6 +481,9 @@ if test_mode == "전체 테스트 (분할 실행)":
     elif batch5:
         ipip_df, bfi_df = run_batch_test('batch5', 40, 50)
 elif test_mode == "간이 테스트 (랜덤 3개 페르소나)":
+    # 랜덤 페르소나 선택
+    random_personas = random.sample(personas, 3)
+    # 간이 테스트 로직 실행
     # ... (기존 간이 테스트 코드) ...
 
 # CSV 파일 생성 및 다운로드 부분
