@@ -106,9 +106,9 @@ with col2:
     else:  # Gemini
         model_choice = st.radio(
             "Gemini 모델 선택",
-            ("Gemini Pro", "Gemini Nano"),
+            ("Gemini Pro",),  # 단일 옵션
             horizontal=True,
-            help="Gemini Pro는 더 정확하지만 느립니다. Gemini Nano는 더 빠르지만 정확도가 낮을 수 있습니다."
+            help="현재 Gemini Pro 모델만 사용 가능합니다."
         )
 
 # 테스트 모드 선택
