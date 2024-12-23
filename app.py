@@ -277,7 +277,7 @@ if 'accumulated_results' not in st.session_state:
     }
 
 if test_mode == "전체 테스트 (분할 실행)":
-    st.write("### 테스트 배치 선택")
+    st.write("### 페르소나 배치 선택")
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
@@ -311,6 +311,8 @@ if test_mode == "전체 테스트 (분할 실행)":
         st.experimental_rerun()
 
 def run_batch_test(batch_name, start_idx, end_idx):
+    # 배치 크기 설정
+    ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
     batch_personas = personas[start_idx:end_idx]
     
     # DataFrame 초기화 또는 기존 결과 불러오기
@@ -386,7 +388,7 @@ def run_batch_test(batch_name, start_idx, end_idx):
                             )
                             
                             time.sleep(3)  # API 호출 간격 증가
-                            break  # 성공시 재시도 루프 종료
+                            break  # ���공시 재시도 루프 종료
                             
                     except Exception as e:
                         if retry_count == 2:  # 마지막 시도였을 경우
