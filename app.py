@@ -317,20 +317,6 @@ if test_mode == "전체 테스트 (분할 실행)":
         bfi_batch5 = st.button("BFI 41-50번", 
                           disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
 
-    # 진행 상황 표시
-    st.write("### 테스트 진행 상황")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        completed_ipip = len([x for x in st.session_state.accumulated_results['completed_batches'] if x.startswith('ipip')])
-        st.write(f"IPIP 완료된 배치: {completed_ipip}/5")
-        st.progress(completed_ipip / 5)
-    
-    with col2:
-        completed_bfi = len([x for x in st.session_state.accumulated_results['completed_batches'] if x.startswith('bfi')])
-        st.write(f"BFI 완료된 배치: {completed_bfi}/5")
-        st.progress(completed_bfi / 5)
-
     # 초기화 버튼
     if st.button("테스트 초기화"):
         st.session_state.accumulated_results = {
@@ -388,8 +374,8 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                         ipip_df.iloc[i] = current_scores
                         ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
                         
-                        # 진행 상황 업데이트
-                        progress = (i * 300 + j + len(scores)) / (len(batch_personas) * 300)
+                        # 진행 상황 업데이트 (1.0을 초과하지 않도록 수정)
+                        progress = min(1.0, ((i - start_idx) * 300 + j + len(scores)) / (len(batch_personas) * 300))
                         progress_bar.progress(progress)
                         
                         # DataFrame 업데이트
@@ -449,8 +435,8 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                         bfi_df.iloc[i] = current_scores
                         bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                         
-                        # 진행 상황 업데이트
-                        progress = (i * 44 + j + len(scores)) / (len(batch_personas) * 44)
+                        # 진행 상황 업데이트 (1.0을 초과하지 않도록 수정)
+                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(batch_personas) * 44))
                         progress_bar.progress(progress)
                         
                         # DataFrame 업데이트
@@ -523,7 +509,7 @@ elif test_mode == "간이 테스트 (랜덤 3개 페르소나)":
     # 간이 테스트 로직 실행
     # ... (기존 간이 테스트 코드) ...
 
-# CSV 파일 생성 및 다운로드 부분
+# CSV 파일 생성 및 ���운로드 부분
 if not st.session_state.accumulated_results['ipip'].empty:
     csv_data = pd.concat([
         st.session_state.accumulated_results['ipip'].add_prefix('IPIP_Q'),
