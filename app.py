@@ -308,10 +308,9 @@ if test_mode == "전체 테스트 (분할 실행)":
             'bfi': pd.DataFrame(),
             'completed_batches': set()
         }
-        st.experimental_rerun()
+        st.rerun()
 
 def run_batch_test(batch_name, start_idx, end_idx):
-    # 배치 크기 설정
     ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
     batch_personas = personas[start_idx:end_idx]
     
@@ -334,134 +333,126 @@ def run_batch_test(batch_name, start_idx, end_idx):
     else:
         bfi_df = st.session_state.accumulated_results['bfi'].copy()
 
+    # 진행 상황 표시를 위한 컨테이너 생성
+    st.write("### IPIP 테스트 진행 상황")
+    ipip_progress = st.progress(0)
+    ipip_table = st.empty()
+    
+    st.write("### BFI 테스트 진행 상황")
+    bfi_progress = st.progress(0)
+    bfi_table = st.empty()
+
     # 테스트 실행
     for i, persona in enumerate(batch_personas, start=start_idx):
         # IPIP 테스트
         all_ipip_scores = []
         for j in range(0, 300, ipip_batch_size):
             try:
-                batch_end = min(j + ipip_batch_size, 300)  # 마지막 배치 처리
+                batch_end = min(j + ipip_batch_size, 300)
                 batch_questions = ipip_questions['items'][j:batch_end]
                 
-                # 재시도 횟수 증가
-                for retry_count in range(3):  
-                    try:
-                        ipip_responses = get_llm_response(persona, batch_questions, 'IPIP')
-                        if ipip_responses and 'responses' in ipip_responses:
-                            scores = [r['score'] for r in ipip_responses['responses']]
-                            all_ipip_scores.extend(scores)
-                            
-                            current_scores = ipip_df.iloc[i].copy()
-                            current_scores[j:j+len(scores)] = scores
-                            ipip_df.iloc[i] = current_scores
-                            ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
-                            
-                            progress = (i * 300 + j + len(scores)) / (len(personas) * 300)
-                            ipip_progress.progress(progress)
-                            
-                            ipip_table.dataframe(
-                                ipip_df.fillna(0).round().astype(int).style
-                                    .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                    .format("{:d}")
-                                    .set_properties(**{
-                                        'width': '40px',
-                                        'text-align': 'center',
-                                        'font-size': '13px',
-                                        'border': '1px solid #e6e6e6'
-                                    })
-                                    .set_table_styles([
-                                        {'selector': 'th', 'props': [
-                                            ('background-color', '#f0f2f6'),
-                                            ('color', '#0e1117'),
-                                            ('font-weight', 'bold'),
-                                            ('text-align', 'center')
-                                        ]},
-                                        {'selector': 'td', 'props': [
-                                            ('text-align', 'center')
-                                        ]},
-                                        {'selector': 'table', 'props': [
-                                            ('width', '100%'),
-                                            ('margin', '0 auto')
-                                        ]}
-                                    ]),
-                                use_container_width=True
-                            )
-                            
-                            time.sleep(3)  # API 호출 간격 증가
-                            break  # ���공시 재시도 루프 종료
-                            
-                    except Exception as e:
-                        if retry_count == 2:  # 마지막 시도였을 경우
-                            st.error(f"IPIP 배치 처리 중 오류 발생 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
-                            raise e
-                        time.sleep(5 * (retry_count + 1))  # 재시도 간격 증가
-                        continue
-                        
+                ipip_responses = get_llm_response(persona, batch_questions, 'IPIP')
+                if ipip_responses and 'responses' in ipip_responses:
+                    scores = [r['score'] for r in ipip_responses['responses']]
+                    all_ipip_scores.extend(scores)
+                    
+                    current_scores = ipip_df.iloc[i].copy()
+                    current_scores[j:j+len(scores)] = scores
+                    ipip_df.iloc[i] = current_scores
+                    ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
+                    
+                    # 진행 상황 업데이트
+                    progress = (i * 300 + j + len(scores)) / (len(batch_personas) * 300)
+                    ipip_progress.progress(progress)
+                    
+                    # DataFrame 업데이트
+                    ipip_table.dataframe(
+                        ipip_df.fillna(0).round().astype(int).style
+                            .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                            .format("{:d}")
+                            .set_properties(**{
+                                'width': '40px',
+                                'text-align': 'center',
+                                'font-size': '13px',
+                                'border': '1px solid #e6e6e6'
+                            })
+                            .set_table_styles([
+                                {'selector': 'th', 'props': [
+                                    ('background-color', '#f0f2f6'),
+                                    ('color', '#0e1117'),
+                                    ('font-weight', 'bold'),
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'td', 'props': [
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'table', 'props': [
+                                    ('width', '100%'),
+                                    ('margin', '0 auto')
+                                ]}
+                            ]),
+                        use_container_width=True
+                    )
+                    
+                    time.sleep(1)  # 시각적 효과를 위한 짧은 대기
+                    
             except Exception as e:
-                st.error(f"IPIP 테스트 중단 (페르소나 {i+1}): {str(e)}")
-                raise e
+                st.error(f"IPIP 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                continue
 
-        # BFI 테스트
+        # BFI 테스트 (유사한 방식으로 구현)
         for j in range(0, 44, bfi_batch_size):
             try:
                 batch_end = min(j + bfi_batch_size, 44)
                 batch_questions = bfi_questions[j:batch_end]
                 
-                # 재시도 횟수 증가
-                for retry_count in range(3):
-                    try:
-                        bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
-                        if bfi_responses and 'responses' in bfi_responses:
-                            scores = [r['score'] for r in bfi_responses['responses']]
-                            current_scores = bfi_df.iloc[i].copy()
-                            current_scores[j:j+len(scores)] = scores
-                            bfi_df.iloc[i] = current_scores
-                            bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
-                            
-                            progress = (i * 44 + batch_end) / (len(personas) * 44)
-                            bfi_progress.progress(progress)
-                            
-                            bfi_table.dataframe(
-                                bfi_df.fillna(0).round().astype(int).style
-                                    .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                    .format("{:d}")
-                                    .set_properties(**{
-                                        'width': '40px',
-                                        'text-align': 'center',
-                                        'font-size': '13px',
-                                        'border': '1px solid #e6e6e6'
-                                    })
-                                    .set_table_styles([
-                                        {'selector': 'th', 'props': [
-                                            ('background-color', '#f0f2f6'),
-                                            ('color', '#0e1117'),
-                                            ('font-weight', 'bold'),
-                                            ('text-align', 'center')
-                                        ]},
-                                        {'selector': 'td', 'props': [
-                                            ('text-align', 'center')
-                                        ]},
-                                        {'selector': 'table', 'props': [
-                                            ('width', '100%'),
-                                            ('margin', '0 auto')
-                                        ]}
-                                    ]),
-                                use_container_width=True
-                            )
-                            
-                            time.sleep(3)  # API 호출 간격 증가
-                            break  # 성공시 재시도 루프 종료
-                            
-                    except Exception as e:
-                        if retry_count == 2:  # 마지막 시도였을 경우
-                            st.error(f"BFI 배치 처리 중 오류 발생 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
-                            raise e
-                        time.sleep(5 * (retry_count + 1))  # 재시도 간격 증가
-                        continue
-                        
+                bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
+                if bfi_responses and 'responses' in bfi_responses:
+                    scores = [r['score'] for r in bfi_responses['responses']]
+                    
+                    current_scores = bfi_df.iloc[i].copy()
+                    current_scores[j:j+len(scores)] = scores
+                    bfi_df.iloc[i] = current_scores
+                    bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
+                    
+                    # 진행 상황 업데이트
+                    progress = (i * 44 + j + len(scores)) / (len(batch_personas) * 44)
+                    bfi_progress.progress(progress)
+                    
+                    # DataFrame 업데이트
+                    bfi_table.dataframe(
+                        bfi_df.fillna(0).round().astype(int).style
+                            .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                            .format("{:d}")
+                            .set_properties(**{
+                                'width': '40px',
+                                'text-align': 'center',
+                                'font-size': '13px',
+                                'border': '1px solid #e6e6e6'
+                            })
+                            .set_table_styles([
+                                {'selector': 'th', 'props': [
+                                    ('background-color', '#f0f2f6'),
+                                    ('color', '#0e1117'),
+                                    ('font-weight', 'bold'),
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'td', 'props': [
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'table', 'props': [
+                                    ('width', '100%'),
+                                    ('margin', '0 auto')
+                                ]}
+                            ]),
+                        use_container_width=True
+                    )
+                    
+                    time.sleep(1)  # 시각적 효과를 위한 짧은 대기
+                    
             except Exception as e:
-                st.error(f"BFI 테스트 중단 (페르소나 {i+1}): {str(e)}")
-                raise e
+                st.error(f"BFI 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                continue
 
     # 결과 누적 저장
     st.session_state.accumulated_results['ipip'] = ipip_df
