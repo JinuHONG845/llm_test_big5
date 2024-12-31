@@ -112,11 +112,9 @@ with col2:
         )
 
 def select_test_mode():
+    # 기존의 테스트 모드 선택 부분을 제거하고 바로 전체 테스트로 진행
     print("\n전체 테스트를 시작합니다.")
-    return "전체 테스트 (분할 실행)"
-
-# test_mode 변수 정의
-test_mode = select_test_mode()
+    return "2"  # 전체 테스트 모드 반환
 
 # API 키 설정
 if llm_choice == "GPT":
@@ -274,56 +272,6 @@ if 'accumulated_results' not in st.session_state:
         'bfi': pd.DataFrame(),
         'completed_batches': set()
     }
-
-if test_mode == "전체 테스트 (분할 실행)":
-    # IPIP 테스트 섹션
-    st.write("### IPIP 페르소나 배치 선택")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        ipip_batch1 = st.button("IPIP 1-10번", 
-                          disabled='ipip_batch1' in st.session_state.accumulated_results['completed_batches'])
-    with col2:
-        ipip_batch2 = st.button("IPIP 11-20번", 
-                          disabled='ipip_batch2' in st.session_state.accumulated_results['completed_batches'])
-    with col3:
-        ipip_batch3 = st.button("IPIP 21-30번", 
-                          disabled='ipip_batch3' in st.session_state.accumulated_results['completed_batches'])
-    with col4:
-        ipip_batch4 = st.button("IPIP 31-40번", 
-                          disabled='ipip_batch4' in st.session_state.accumulated_results['completed_batches'])
-    with col5:
-        ipip_batch5 = st.button("IPIP 41-50번", 
-                          disabled='ipip_batch5' in st.session_state.accumulated_results['completed_batches'])
-
-    # BFI 테스트 섹션
-    st.write("### BFI 페르소나 배치 선택")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        bfi_batch1 = st.button("BFI 1-10번", 
-                          disabled='bfi_batch1' in st.session_state.accumulated_results['completed_batches'])
-    with col2:
-        bfi_batch2 = st.button("BFI 11-20번", 
-                          disabled='bfi_batch2' in st.session_state.accumulated_results['completed_batches'])
-    with col3:
-        bfi_batch3 = st.button("BFI 21-30번", 
-                          disabled='bfi_batch3' in st.session_state.accumulated_results['completed_batches'])
-    with col4:
-        bfi_batch4 = st.button("BFI 31-40번", 
-                          disabled='bfi_batch4' in st.session_state.accumulated_results['completed_batches'])
-    with col5:
-        bfi_batch5 = st.button("BFI 41-50번", 
-                          disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
-
-    # 초기화 버튼
-    if st.button("테스트 초기화"):
-        st.session_state.accumulated_results = {
-            'ipip': pd.DataFrame(),
-            'bfi': pd.DataFrame(),
-            'completed_batches': set()
-        }
-        st.rerun()
 
 def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
     ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
