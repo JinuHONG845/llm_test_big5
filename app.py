@@ -113,7 +113,10 @@ with col2:
 
 def select_test_mode():
     print("\n전체 테스트를 시작합니다.")
-    return "전체 테스트 (분할 실행)"  # 문자열 값을 정확히 맞춤
+    return "전체 테스트 (분할 실행)"
+
+# test_mode 변수 정의
+test_mode = select_test_mode()
 
 # API 키 설정
 if llm_choice == "GPT":
