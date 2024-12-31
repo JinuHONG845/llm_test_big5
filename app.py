@@ -297,6 +297,42 @@ if test_mode == "전체 테스트 (분할 실행)":
         ipip_batch5 = st.button("IPIP 41-50번", 
                           disabled='ipip_batch5' in st.session_state.accumulated_results['completed_batches'])
 
+    # IPIP 결과 테이블
+    st.write("### IPIP 테스트 결과")
+    if 'ipip_table' not in st.session_state:
+        st.session_state.ipip_table = st.empty()
+        # 초기 빈 DataFrame 표시
+        initial_ipip_df = pd.DataFrame(
+            np.nan,
+            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
+            columns=[f"Q{i+1}" for i in range(300)]
+        )
+        st.session_state.ipip_table.dataframe(
+            initial_ipip_df.style
+                .set_properties(**{
+                    'width': '40px',
+                    'text-align': 'center',
+                    'font-size': '13px',
+                    'border': '1px solid #e6e6e6'
+                })
+                .set_table_styles([
+                    {'selector': 'th', 'props': [
+                        ('background-color', '#f0f2f6'),
+                        ('color', '#0e1117'),
+                        ('font-weight', 'bold'),
+                        ('text-align', 'center')
+                    ]},
+                    {'selector': 'td', 'props': [
+                        ('text-align', 'center')
+                    ]},
+                    {'selector': 'table', 'props': [
+                        ('width', '100%'),
+                        ('margin', '0 auto')
+                    ]}
+                ]),
+            use_container_width=True
+        )
+
     # 대조군 테스트 섹션 추가
     st.write("### IPIP 대조군 테스트 (페르소나 없음)")
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -316,6 +352,42 @@ if test_mode == "전체 테스트 (분할 실행)":
     with col5:
         control_batch5 = st.button("대조군 41-50번", 
                           disabled='control_batch5' in st.session_state.accumulated_results['completed_batches'])
+
+    # 대조군 결과 테이블
+    st.write("### 대조군 테스트 결과")
+    if 'control_table' not in st.session_state:
+        st.session_state.control_table = st.empty()
+        # 초기 빈 DataFrame 표시
+        initial_control_df = pd.DataFrame(
+            np.nan,
+            index=[f"Control {i+1}" for i in range(len(personas))] + ['Control Average'],
+            columns=[f"Q{i+1}" for i in range(300)]
+        )
+        st.session_state.control_table.dataframe(
+            initial_control_df.style
+                .set_properties(**{
+                    'width': '40px',
+                    'text-align': 'center',
+                    'font-size': '13px',
+                    'border': '1px solid #e6e6e6'
+                })
+                .set_table_styles([
+                    {'selector': 'th', 'props': [
+                        ('background-color', '#f0f2f6'),
+                        ('color', '#0e1117'),
+                        ('font-weight', 'bold'),
+                        ('text-align', 'center')
+                    ]},
+                    {'selector': 'td', 'props': [
+                        ('text-align', 'center')
+                    ]},
+                    {'selector': 'table', 'props': [
+                        ('width', '100%'),
+                        ('margin', '0 auto')
+                    ]}
+                ]),
+            use_container_width=True
+        )
 
     # BFI 테스트 섹션
     st.write("### BFI 페르소나 배치 선택")
@@ -352,11 +424,13 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         questions = ipip_questions['items']
         total_questions = 300
         batch_size = get_batch_size(model_choice)[0]
+        table_container = st.session_state.ipip_table
     else:  # BFI
         df_key = 'bfi'
         questions = bfi_questions
         total_questions = 44
         batch_size = get_batch_size(model_choice)[1]
+        table_container = st.session_state.bfi_table
 
     # DataFrame 초기화 또는 기존 결과 불러오기
     if st.session_state.accumulated_results[df_key].empty:
@@ -369,9 +443,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         df = st.session_state.accumulated_results[df_key].copy()
 
     # 진행 상황 표시
-    st.write(f"### {test_type} 테스트 진행 상황")
     progress_bar = st.progress(0)
-    result_table = st.empty()
 
     batch_personas = personas[start_idx:end_idx]
     for i, persona in enumerate(batch_personas, start=start_idx):
@@ -394,7 +466,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                     progress_bar.progress(progress)
                     
                     # DataFrame 업데이트
-                    result_table.dataframe(
+                    table_container.dataframe(
                         df.fillna(0).round().astype(int).style
                             .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
                             .format("{:d}")
