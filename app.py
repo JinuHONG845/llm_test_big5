@@ -174,6 +174,16 @@ elif llm_choice == "Claude":
 else:
     api_keys[llm_choice][1](api_key)
 
+# 세션 상태 초기화
+if 'accumulated_results' not in st.session_state:
+    st.session_state.accumulated_results = {
+        'ipip': pd.DataFrame(),
+        'bfi': pd.DataFrame(),
+        'control_ipip': pd.DataFrame(),
+        'bfi_control': pd.DataFrame(),
+        'completed_batches': set()
+    }
+
 # 테이블 초기화
 initialize_tables()
 
@@ -196,15 +206,6 @@ def get_batch_size(model):
         return 25, 5  # IPIP 배치 크기, BFI 배치 크기
     else:
         return 10, 3  # 더 작은 배치 크기
-
-# 세션 상태 초기화
-if 'accumulated_results' not in st.session_state:
-    st.session_state.accumulated_results = {
-        'ipip': pd.DataFrame(),
-        'bfi': pd.DataFrame(),
-        'control_ipip': pd.DataFrame(),
-        'completed_batches': set()
-    }
 
 def select_test_mode():
     print("\n전체 테스트를 시작합니다.")
