@@ -9,6 +9,80 @@ import time
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 import random  # 파일 상단에 추가
 
+# 공통 테이블 스타일 정의
+TABLE_STYLE = {
+    'properties': {
+        'width': '40px',
+        'text-align': 'center',
+        'font-size': '13px',
+        'border': '1px solid #e6e6e6'
+    },
+    'table_styles': [
+        {'selector': 'th', 'props': [
+            ('background-color', '#f0f2f6'),
+            ('color', '#0e1117'),
+            ('font-weight', 'bold'),
+            ('text-align', 'center')
+        ]},
+        {'selector': 'td', 'props': [
+            ('text-align', 'center')
+        ]},
+        {'selector': 'table', 'props': [
+            ('width', '100%'),
+            ('margin', '0 auto')
+        ]}
+    ]
+}
+
+def create_styled_table(df):
+    """테이블 스타일링을 적용하는 헬퍼 함수"""
+    return df.fillna(0).round().astype(int).style\
+        .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)\
+        .format("{:d}")\
+        .set_properties(**TABLE_STYLE['properties'])\
+        .set_table_styles(TABLE_STYLE['table_styles'])
+
+def initialize_table(title, columns, is_control=False):
+    """테이블 초기화를 위한 헬퍼 함수"""
+    st.write(f"### {title}")
+    table = st.empty()
+    prefix = "Control" if is_control else "Persona"
+    df = pd.DataFrame(
+        np.nan,
+        index=[f"{prefix} {i+1}" for i in range(len(personas))] + [f'{prefix} Average'],
+        columns=[f"Q{i+1}" for i in range(columns)]
+    )
+    table.dataframe(create_styled_table(df), use_container_width=True)
+    return table
+
+def initialize_tables():
+    """모든 테이블 초기화"""
+    if 'tables_initialized' not in st.session_state:
+        st.session_state.ipip_table = initialize_table("IPIP 테스트 결과", 300)
+        st.session_state.control_table = initialize_table("IPIP 대조군 테스트 결과", 300, True)
+        st.session_state.bfi_table = initialize_table("BFI 테스트 결과", 44)
+        st.session_state.bfi_control_table = initialize_table("BFI 대조군 테스트 결과", 44, True)
+        st.session_state.tables_initialized = True
+
+def create_test_buttons(prefix, disabled_check):
+    """테스트 버튼 생성을 위한 헬퍼 함수"""
+    col1, col2, col3, col4, col5 = st.columns(5)
+    buttons = []
+    for i, col in enumerate([col1, col2, col3, col4, col5], 1):
+        with col:
+            start_num = (i-1)*10 + 1
+            end_num = i*10
+            button = st.button(
+                f"{prefix} {start_num}-{end_num}번",
+                disabled=f'{prefix.lower()}_batch{i}' in disabled_check
+            )
+            buttons.append(button)
+    return buttons
+
+def update_table(table, df):
+    """테이블 업데이트를 위한 헬퍼 함수"""
+    table.dataframe(create_styled_table(df), use_container_width=True)
+
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="LLM Big 5 Test")
 
@@ -64,155 +138,57 @@ st.title("LLM Big 5 Test")
 
 # JSON 파일들 로드
 try:
-    with open('persona.json', 'r') as f:
-        personas = json.load(f)
-    with open('IPIP.json', 'r') as f:
-        ipip_questions = json.load(f)
-    with open('BFI.json', 'r') as f:
-        bfi_questions = json.load(f)
-except FileNotFoundError as e:
-    st.error(f"필요한 JSON 파일을 찾을 수 없습니다: {str(e)}")
-    st.stop()
-except json.JSONDecodeError as e:
-    st.error(f"JSON 파일 파싱 오류: {str(e)}")
+    personas = json.load(open('persona.json', 'r'))
+    ipip_questions = json.load(open('IPIP.json', 'r'))['items']
+    bfi_questions = json.load(open('BFI.json', 'r'))
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    st.error(f"JSON 파일 로드 오류: {str(e)}")
     st.stop()
 
-# LLM 선택 및 설정
-col1, col2 = st.columns([1, 2])
-
-with col1:
-    llm_choice = st.radio(
-        "LLM 선택",
-        ("GPT", "Claude", "Gemini"),
-        horizontal=True
-    )
-
-with col2:
-    # LLM 선택에 따른 세부 모델 선택
-    if llm_choice == "GPT":
-        model_choice = st.radio(
-            "GPT 모델 선택",
-            ("GPT-4 Turbo", "GPT-3.5 Turbo"),
-            horizontal=True,
-            help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다."
-        )
-    elif llm_choice == "Claude":
-        model_choice = st.radio(
-            "Claude 모델 선택",
-            ("Claude 3 Sonnet", "Claude 3 Haiku"),
-            horizontal=True,
-            help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다."
-        )
-    else:  # Gemini
-        model_choice = st.radio(
-            "Gemini 모델 선택",
-            ("Gemini Pro",),  # 단일 옵션
-            horizontal=True,
-            help="현재 Gemini Pro 모델만 사용 가능합니다."
-        )
-
-def select_test_mode():
-    print("\n전체 테스트를 시작합니다.")
-    return "전체 테스트 (분할 실행)"
-
-# test_mode 변수 정의
-test_mode = select_test_mode()
-
-# 테이블 초기화 함수 정의 및 호출
-def initialize_tables():
-    if 'tables_initialized' not in st.session_state:
-        # IPIP 테이블 초기화
-        st.write("### IPIP 테스트 결과")
-        st.session_state.ipip_table = st.empty()
-        initial_ipip_df = pd.DataFrame(
-            np.nan,
-            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
-            columns=[f"Q{i+1}" for i in range(300)]
-        )
-        st.session_state.ipip_table.dataframe(
-            initial_ipip_df.style
-                .set_properties(**{
-                    'width': '40px',
-                    'text-align': 'center',
-                    'font-size': '13px',
-                    'border': '1px solid #e6e6e6'
-                })
-                .set_table_styles([
-                    {'selector': 'th', 'props': [
-                        ('background-color', '#f0f2f6'),
-                        ('color', '#0e1117'),
-                        ('font-weight', 'bold'),
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'td', 'props': [
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'table', 'props': [
-                        ('width', '100%'),
-                        ('margin', '0 auto')
-                    ]}
-                ]),
-            use_container_width=True
-        )
-
-        # 대조군 테이블 초기화
-        st.write("### 대조군 테스트 결과")
-        st.session_state.control_table = st.empty()
-        initial_control_df = pd.DataFrame(
-            np.nan,
-            index=[f"Control {i+1}" for i in range(len(personas))] + ['Control Average'],
-            columns=[f"Q{i+1}" for i in range(300)]
-        )
-        st.session_state.control_table.dataframe(
-            initial_control_df.style
-                .set_properties(**{
-                    'width': '40px',
-                    'text-align': 'center',
-                    'font-size': '13px',
-                    'border': '1px solid #e6e6e6'
-                })
-                .set_table_styles([
-                    {'selector': 'th', 'props': [
-                        ('background-color', '#f0f2f6'),
-                        ('color', '#0e1117'),
-                        ('font-weight', 'bold'),
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'td', 'props': [
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'table', 'props': [
-                        ('width', '100%'),
-                        ('margin', '0 auto')
-                    ]}
-                ]),
-            use_container_width=True
-        )
-        
-        st.session_state.tables_initialized = True
-
-# 테이블 초기화 함수 호출
-initialize_tables()
+# LLM 선택
+llm_choice = st.radio("LLM 선택", ("GPT", "Claude", "Gemini"), horizontal=True)
+model_choice = st.radio(
+    f"{llm_choice} 모델 선택",
+    ("GPT-4 Turbo", "GPT-3.5 Turbo") if llm_choice == "GPT" else
+    ("Claude 3 Sonnet", "Claude 3 Haiku") if llm_choice == "Claude" else
+    ("Gemini Pro",),
+    horizontal=True
+)
 
 # API 키 설정
+api_keys = {
+    "GPT": ("OPENAI_API_KEY", openai),
+    "Claude": ("ANTHROPIC_API_KEY", lambda key: anthropic.Anthropic(api_key=key)),
+    "Gemini": ("GOOGLE_API_KEY", lambda key: genai.configure(api_key=key))
+}
+
+api_key = st.secrets.get(api_keys[llm_choice][0])
+if not api_key:
+    st.error(f"{llm_choice} API 키가 설정되지 않았습니다.")
+    st.stop()
+
 if llm_choice == "GPT":
-    api_key = st.secrets.get("OPENAI_API_KEY")
-    if not api_key:
-        st.error("OpenAI API 키가 설정되지 않았습니다.")
-        st.stop()
     openai.api_key = api_key
 elif llm_choice == "Claude":
-    api_key = st.secrets.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        st.error("Anthropic API 키가 설정되지 않았습니다.")
-        st.stop()
-    client = anthropic.Anthropic(api_key=api_key)
-else:  # Gemini
-    api_key = st.secrets.get("GOOGLE_API_KEY")
-    if not api_key:
-        st.error("Google API 키가 설정되지 않았습니다.")
-        st.stop()
-    genai.configure(api_key=api_key)
+    client = api_keys[llm_choice][1](api_key)
+else:
+    api_keys[llm_choice][1](api_key)
+
+# 테이블 초기화
+initialize_tables()
+
+# 테스트 버튼 생성
+st.write("### IPIP 페르소나 배치 선택")
+ipip_buttons = create_test_buttons("IPIP", st.session_state.accumulated_results['completed_batches'])
+
+st.write("### IPIP 대조군 테스트 (페르소나 없음)")
+control_buttons = create_test_buttons("Control", st.session_state.accumulated_results['completed_batches'])
+
+st.write("### BFI 페르소나 배치 선택")
+bfi_buttons = create_test_buttons("BFI", st.session_state.accumulated_results['completed_batches'])
+
+st.write("### BFI 대조군 테스트 (페르소나 없음)")
+bfi_control_buttons = create_test_buttons("BFI Control", st.session_state.accumulated_results['completed_batches'])
 
 # 배치 크기 조정 (모델에 따라)
 def get_batch_size(model):
@@ -230,152 +206,17 @@ if 'accumulated_results' not in st.session_state:
         'completed_batches': set()
     }
 
-if test_mode == "전체 테스트 (분할 실행)":
-    # IPIP 테스트 섹션
-    st.write("### IPIP 페르소나 배치 선택")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        ipip_batch1 = st.button("IPIP 1-10번", 
-                          disabled='ipip_batch1' in st.session_state.accumulated_results['completed_batches'])
-    with col2:
-        ipip_batch2 = st.button("IPIP 11-20번", 
-                          disabled='ipip_batch2' in st.session_state.accumulated_results['completed_batches'])
-    with col3:
-        ipip_batch3 = st.button("IPIP 21-30번", 
-                          disabled='ipip_batch3' in st.session_state.accumulated_results['completed_batches'])
-    with col4:
-        ipip_batch4 = st.button("IPIP 31-40번", 
-                          disabled='ipip_batch4' in st.session_state.accumulated_results['completed_batches'])
-    with col5:
-        ipip_batch5 = st.button("IPIP 41-50번", 
-                          disabled='ipip_batch5' in st.session_state.accumulated_results['completed_batches'])
+def select_test_mode():
+    print("\n전체 테스트를 시작합니다.")
+    return "전체 테스트 (분할 실행)"
 
-    # IPIP 결과 테이블
-    st.write("### IPIP 테스트 결과")
-    if 'ipip_table' not in st.session_state:
-        st.session_state.ipip_table = st.empty()
-        # 초기 빈 DataFrame 표시
-        initial_ipip_df = pd.DataFrame(
-            np.nan,
-            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
-            columns=[f"Q{i+1}" for i in range(300)]
-        )
-        st.session_state.ipip_table.dataframe(
-            initial_ipip_df.style
-                .set_properties(**{
-                    'width': '40px',
-                    'text-align': 'center',
-                    'font-size': '13px',
-                    'border': '1px solid #e6e6e6'
-                })
-                .set_table_styles([
-                    {'selector': 'th', 'props': [
-                        ('background-color', '#f0f2f6'),
-                        ('color', '#0e1117'),
-                        ('font-weight', 'bold'),
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'td', 'props': [
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'table', 'props': [
-                        ('width', '100%'),
-                        ('margin', '0 auto')
-                    ]}
-                ]),
-            use_container_width=True
-        )
-
-    # 대조군 테스트 섹션 추가
-    st.write("### IPIP 대조군 테스트 (페르소나 없음)")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        control_batch1 = st.button("대조군 1-10번", 
-                          disabled='control_batch1' in st.session_state.accumulated_results['completed_batches'])
-    with col2:
-        control_batch2 = st.button("대조군 11-20번", 
-                          disabled='control_batch2' in st.session_state.accumulated_results['completed_batches'])
-    with col3:
-        control_batch3 = st.button("대조군 21-30번", 
-                          disabled='control_batch3' in st.session_state.accumulated_results['completed_batches'])
-    with col4:
-        control_batch4 = st.button("대조군 31-40번", 
-                          disabled='control_batch4' in st.session_state.accumulated_results['completed_batches'])
-    with col5:
-        control_batch5 = st.button("대조군 41-50번", 
-                          disabled='control_batch5' in st.session_state.accumulated_results['completed_batches'])
-
-    # 대조군 결과 테이블
-    st.write("### 대조군 테스트 결과")
-    if 'control_table' not in st.session_state:
-        st.session_state.control_table = st.empty()
-        # 초기 빈 DataFrame 표시
-        initial_control_df = pd.DataFrame(
-            np.nan,
-            index=[f"Control {i+1}" for i in range(len(personas))] + ['Control Average'],
-            columns=[f"Q{i+1}" for i in range(300)]
-        )
-        st.session_state.control_table.dataframe(
-            initial_control_df.style
-                .set_properties(**{
-                    'width': '40px',
-                    'text-align': 'center',
-                    'font-size': '13px',
-                    'border': '1px solid #e6e6e6'
-                })
-                .set_table_styles([
-                    {'selector': 'th', 'props': [
-                        ('background-color', '#f0f2f6'),
-                        ('color', '#0e1117'),
-                        ('font-weight', 'bold'),
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'td', 'props': [
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'table', 'props': [
-                        ('width', '100%'),
-                        ('margin', '0 auto')
-                    ]}
-                ]),
-            use_container_width=True
-        )
-
-    # BFI 테스트 섹션
-    st.write("### BFI 페르소나 배치 선택")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        bfi_batch1 = st.button("BFI 1-10번", 
-                          disabled='bfi_batch1' in st.session_state.accumulated_results['completed_batches'])
-    with col2:
-        bfi_batch2 = st.button("BFI 11-20번", 
-                          disabled='bfi_batch2' in st.session_state.accumulated_results['completed_batches'])
-    with col3:
-        bfi_batch3 = st.button("BFI 21-30번", 
-                          disabled='bfi_batch3' in st.session_state.accumulated_results['completed_batches'])
-    with col4:
-        bfi_batch4 = st.button("BFI 31-40번", 
-                          disabled='bfi_batch4' in st.session_state.accumulated_results['completed_batches'])
-    with col5:
-        bfi_batch5 = st.button("BFI 41-50번", 
-                          disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
-
-    # 초기화 버튼
-    if st.button("테스트 초기화"):
-        st.session_state.accumulated_results = {
-            'ipip': pd.DataFrame(),
-            'bfi': pd.DataFrame(),
-            'completed_batches': set()
-        }
-        st.rerun()
+# test_mode 변수 정의
+test_mode = select_test_mode()
 
 def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
     if test_type == 'IPIP':
         df_key = 'ipip'
-        questions = ipip_questions['items']
+        questions = ipip_questions
         total_questions = 300
         batch_size = get_batch_size(model_choice)[0]
         table_container = st.session_state.ipip_table
@@ -485,7 +326,7 @@ def run_control_batch_test(batch_name, start_idx, end_idx):
         for j in range(0, 300, ipip_batch_size):
             try:
                 batch_end = min(j + ipip_batch_size, 300)
-                batch_questions = ipip_questions['items'][j:batch_end]
+                batch_questions = ipip_questions[j:batch_end]
                 
                 # 페르소나 없이 테스트 실행
                 empty_persona = {"personality": []}
@@ -548,39 +389,39 @@ def run_control_batch_test(batch_name, start_idx, end_idx):
 # 배치 버튼 클릭 처리
 if test_mode == "전체 테스트 (분할 실행)":
     # IPIP 테스트 배치
-    if ipip_batch1:
+    if ipip_buttons[0]:
         run_batch_test('ipip_batch1', 0, 10, test_type='IPIP')
-    if ipip_batch2:
+    if ipip_buttons[1]:
         run_batch_test('ipip_batch2', 10, 20, test_type='IPIP')
-    if ipip_batch3:
+    if ipip_buttons[2]:
         run_batch_test('ipip_batch3', 20, 30, test_type='IPIP')
-    if ipip_batch4:
+    if ipip_buttons[3]:
         run_batch_test('ipip_batch4', 30, 40, test_type='IPIP')
-    if ipip_batch5:
+    if ipip_buttons[4]:
         run_batch_test('ipip_batch5', 40, 50, test_type='IPIP')
 
     # BFI 테스트 배치
-    if bfi_batch1:
+    if bfi_buttons[0]:
         run_batch_test('bfi_batch1', 0, 10, test_type='BFI')
-    if bfi_batch2:
+    if bfi_buttons[1]:
         run_batch_test('bfi_batch2', 10, 20, test_type='BFI')
-    if bfi_batch3:
+    if bfi_buttons[2]:
         run_batch_test('bfi_batch3', 20, 30, test_type='BFI')
-    if bfi_batch4:
+    if bfi_buttons[3]:
         run_batch_test('bfi_batch4', 30, 40, test_type='BFI')
-    if bfi_batch5:
+    if bfi_buttons[4]:
         run_batch_test('bfi_batch5', 40, 50, test_type='BFI')
 
     # 대조군 테스트 배치
-    if control_batch1:
+    if control_buttons[0]:
         run_control_batch_test('control_batch1', 0, 10)
-    if control_batch2:
+    if control_buttons[1]:
         run_control_batch_test('control_batch2', 10, 20)
-    if control_batch3:
+    if control_buttons[2]:
         run_control_batch_test('control_batch3', 20, 30)
-    if control_batch4:
+    if control_buttons[3]:
         run_control_batch_test('control_batch4', 30, 40)
-    if control_batch5:
+    if control_buttons[4]:
         run_control_batch_test('control_batch5', 40, 50)
 elif test_mode == "간이 테스트 (랜덤 3개 페르소나)":
     # 랜덤 페르소나 선택
