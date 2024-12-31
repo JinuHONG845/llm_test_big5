@@ -111,6 +111,29 @@ with col2:
             help="현재 Gemini Pro 모델만 사용 가능합니다."
         )
 
+# 테이블 초기화 함수 호출 (API 키 설정 전에 실행)
+initialize_tables()
+
+# API 키 설정
+if llm_choice == "GPT":
+    api_key = st.secrets.get("OPENAI_API_KEY")
+    if not api_key:
+        st.error("OpenAI API 키가 설정되지 않았습니다.")
+        st.stop()
+    openai.api_key = api_key
+elif llm_choice == "Claude":
+    api_key = st.secrets.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        st.error("Anthropic API 키가 설정되지 않았습니다.")
+        st.stop()
+    client = anthropic.Anthropic(api_key=api_key)
+else:  # Gemini
+    api_key = st.secrets.get("GOOGLE_API_KEY")
+    if not api_key:
+        st.error("Google API 키가 설정되지 않았습니다.")
+        st.stop()
+    genai.configure(api_key=api_key)
+
 def select_test_mode():
     print("\n전체 테스트를 시작합니다.")
     return "전체 테스트 (분할 실행)"
@@ -155,8 +178,8 @@ def initialize_tables():
             use_container_width=True
         )
 
-        # IPIP 대조군 테이블 초기화
-        st.write("### IPIP 대조군 테스트 결과")
+        # 대조군 테이블 초기화
+        st.write("### 대조군 테스트 결과")
         st.session_state.control_table = st.empty()
         initial_control_df = pd.DataFrame(
             np.nan,
@@ -188,99 +211,8 @@ def initialize_tables():
                 ]),
             use_container_width=True
         )
-
-        # BFI 테이블 초기화
-        st.write("### BFI 테스트 결과")
-        st.session_state.bfi_table = st.empty()
-        initial_bfi_df = pd.DataFrame(
-            np.nan,
-            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
-            columns=[f"Q{i+1}" for i in range(44)]
-        )
-        st.session_state.bfi_table.dataframe(
-            initial_bfi_df.style
-                .set_properties(**{
-                    'width': '40px',
-                    'text-align': 'center',
-                    'font-size': '13px',
-                    'border': '1px solid #e6e6e6'
-                })
-                .set_table_styles([
-                    {'selector': 'th', 'props': [
-                        ('background-color', '#f0f2f6'),
-                        ('color', '#0e1117'),
-                        ('font-weight', 'bold'),
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'td', 'props': [
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'table', 'props': [
-                        ('width', '100%'),
-                        ('margin', '0 auto')
-                    ]}
-                ]),
-            use_container_width=True
-        )
-
-        # BFI 대조군 테이블 초기화
-        st.write("### BFI 대조군 테스트 결과")
-        st.session_state.bfi_control_table = st.empty()
-        initial_bfi_control_df = pd.DataFrame(
-            np.nan,
-            index=[f"Control {i+1}" for i in range(len(personas))] + ['Control Average'],
-            columns=[f"Q{i+1}" for i in range(44)]
-        )
-        st.session_state.bfi_control_table.dataframe(
-            initial_bfi_control_df.style
-                .set_properties(**{
-                    'width': '40px',
-                    'text-align': 'center',
-                    'font-size': '13px',
-                    'border': '1px solid #e6e6e6'
-                })
-                .set_table_styles([
-                    {'selector': 'th', 'props': [
-                        ('background-color', '#f0f2f6'),
-                        ('color', '#0e1117'),
-                        ('font-weight', 'bold'),
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'td', 'props': [
-                        ('text-align', 'center')
-                    ]},
-                    {'selector': 'table', 'props': [
-                        ('width', '100%'),
-                        ('margin', '0 auto')
-                    ]}
-                ]),
-            use_container_width=True
-        )
         
         st.session_state.tables_initialized = True
-
-# API 키 설정
-if llm_choice == "GPT":
-    api_key = st.secrets.get("OPENAI_API_KEY")
-    if not api_key:
-        st.error("OpenAI API 키가 설정되지 않았습니다.")
-        st.stop()
-    openai.api_key = api_key
-elif llm_choice == "Claude":
-    api_key = st.secrets.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        st.error("Anthropic API 키가 설정되지 않았습니다.")
-        st.stop()
-    client = anthropic.Anthropic(api_key=api_key)
-else:  # Gemini
-    api_key = st.secrets.get("GOOGLE_API_KEY")
-    if not api_key:
-        st.error("Google API 키가 설정되지 않았습니다.")
-        st.stop()
-    genai.configure(api_key=api_key)
-
-# 테이블 초기화 함수 호출
-initialize_tables()
 
 @retry(
     stop=stop_after_attempt(5),  # 최대 5번 재시도
@@ -553,26 +485,6 @@ if test_mode == "전체 테스트 (분할 실행)":
         bfi_batch5 = st.button("BFI 41-50번", 
                           disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
 
-    # BFI 대조군 테스트 버튼 추가
-    st.write("### BFI 대조군 테스트 (페르소나 없음)")
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        bfi_control_batch1 = st.button("BFI 대조군 1-10번", 
-                              disabled='bfi_control_batch1' in st.session_state.accumulated_results['completed_batches'])
-    with col2:
-        bfi_control_batch2 = st.button("BFI 대조군 11-20번", 
-                              disabled='bfi_control_batch2' in st.session_state.accumulated_results['completed_batches'])
-    with col3:
-        bfi_control_batch3 = st.button("BFI 대조군 21-30번", 
-                              disabled='bfi_control_batch3' in st.session_state.accumulated_results['completed_batches'])
-    with col4:
-        bfi_control_batch4 = st.button("BFI 대조군 31-40번", 
-                              disabled='bfi_control_batch4' in st.session_state.accumulated_results['completed_batches'])
-    with col5:
-        bfi_control_batch5 = st.button("BFI 대조군 41-50번", 
-                              disabled='bfi_control_batch5' in st.session_state.accumulated_results['completed_batches'])
-
     # 초기화 버튼
     if st.button("테스트 초기화"):
         st.session_state.accumulated_results = {
@@ -582,97 +494,192 @@ if test_mode == "전체 테스트 (분할 실행)":
         }
         st.rerun()
 
-    # BFI 대조군 테스트 실행 함수
-    def run_bfi_control_batch_test(batch_name, start_idx, end_idx):
-        """페르소나 없이 BFI 대조군 테스트를 실행하는 함수"""
-        bfi_batch_size = get_batch_size(model_choice)[1]
-        
-        if 'bfi_control' not in st.session_state.accumulated_results:
-            st.session_state.accumulated_results['bfi_control'] = pd.DataFrame(
-                np.nan, 
-                index=[f"Control {i+1}" for i in range(len(personas))] + ['Control Average'],
-                columns=[f"Q{i+1}" for i in range(44)]
-            )
-        
-        control_df = st.session_state.accumulated_results['bfi_control'].copy()
-        
-        # 진행 상황 표시
-        progress_bar = st.progress(0)
-        
-        for i in range(start_idx, end_idx):
-            for j in range(0, 44, bfi_batch_size):
-                try:
-                    batch_end = min(j + bfi_batch_size, 44)
-                    batch_questions = bfi_questions[j:batch_end]
-                    
-                    # 페르소나 없이 테스트 실행
-                    empty_persona = {"personality": []}
-                    control_responses = get_llm_response(empty_persona, batch_questions, 'BFI')
-                    
-                    if control_responses and 'responses' in control_responses:
-                        scores = [r['score'] for r in control_responses['responses']]
-                        
-                        current_scores = control_df.iloc[i].copy()
-                        current_scores[j:j+len(scores)] = scores
-                        control_df.iloc[i] = current_scores
-                        control_df.loc['Control Average'] = control_df.iloc[:-1].mean()
-                        
-                        # 진행 상황 업데이트
-                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / ((end_idx - start_idx) * 44))
-                        progress_bar.progress(progress)
-                        
-                        # DataFrame 업데이트
-                        st.session_state.bfi_control_table.dataframe(
-                            control_df.fillna(0).round().astype(int).style
-                                .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                .format("{:d}")
-                                .set_properties(**{
-                                    'width': '40px',
-                                    'text-align': 'center',
-                                    'font-size': '13px',
-                                    'border': '1px solid #e6e6e6'
-                                })
-                                .set_table_styles([
-                                    {'selector': 'th', 'props': [
-                                        ('background-color', '#f0f2f6'),
-                                        ('color', '#0e1117'),
-                                        ('font-weight', 'bold'),
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'td', 'props': [
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'table', 'props': [
-                                        ('width', '100%'),
-                                        ('margin', '0 auto')
-                                    ]}
-                                ]),
-                            use_container_width=True
-                        )
-                        
-                        time.sleep(1)
-                        
-                except Exception as e:
-                    st.error(f"BFI 대조군 테스트 오류 (Control {i+1}, 문항 {j}-{batch_end}): {str(e)}")
-                    continue
-            
-        # 결과 저장
-        st.session_state.accumulated_results['bfi_control'] = control_df
-        st.session_state.accumulated_results['completed_batches'].add(batch_name)
-        
-        return control_df
+def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
+    if test_type == 'IPIP':
+        df_key = 'ipip'
+        questions = ipip_questions['items']
+        total_questions = 300
+        batch_size = get_batch_size(model_choice)[0]
+        table_container = st.session_state.ipip_table
+    else:  # BFI
+        df_key = 'bfi'
+        questions = bfi_questions
+        total_questions = 44
+        batch_size = get_batch_size(model_choice)[1]
+        table_container = st.session_state.bfi_table
 
-    # BFI 대조군 배치 버튼 클릭 처리
-    if bfi_control_batch1:
-        run_bfi_control_batch_test('bfi_control_batch1', 0, 10)
-    elif bfi_control_batch2:
-        run_bfi_control_batch_test('bfi_control_batch2', 10, 20)
-    elif bfi_control_batch3:
-        run_bfi_control_batch_test('bfi_control_batch3', 20, 30)
-    elif bfi_control_batch4:
-        run_bfi_control_batch_test('bfi_control_batch4', 30, 40)
-    elif bfi_control_batch5:
-        run_bfi_control_batch_test('bfi_control_batch5', 40, 50)
+    # DataFrame 초기화 또는 기존 결과 불러오기
+    if st.session_state.accumulated_results[df_key].empty:
+        df = pd.DataFrame(
+            np.nan, 
+            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
+            columns=[f"Q{i+1}" for i in range(total_questions)]
+        )
+    else:
+        df = st.session_state.accumulated_results[df_key].copy()
+
+    # 진행 상황 표시
+    progress_bar = st.progress(0)
+
+    batch_personas = personas[start_idx:end_idx]
+    for i, persona in enumerate(batch_personas, start=start_idx):
+        for j in range(0, total_questions, batch_size):
+            try:
+                batch_end = min(j + batch_size, total_questions)
+                batch_questions = questions[j:batch_end]
+                
+                responses = get_llm_response(persona, batch_questions, test_type)
+                if responses and 'responses' in responses:
+                    scores = [r['score'] for r in responses['responses']]
+                    
+                    current_scores = df.iloc[i].copy()
+                    current_scores[j:j+len(scores)] = scores
+                    df.iloc[i] = current_scores
+                    df.loc['Average'] = df.iloc[:-1].mean()
+                    
+                    # 진행 상황 업데이트
+                    progress = min(1.0, ((i - start_idx) * total_questions + j + len(scores)) / (len(batch_personas) * total_questions))
+                    progress_bar.progress(progress)
+                    
+                    # DataFrame 업데이트
+                    table_container.dataframe(
+                        df.fillna(0).round().astype(int).style
+                            .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                            .format("{:d}")
+                            .set_properties(**{
+                                'width': '40px',
+                                'text-align': 'center',
+                                'font-size': '13px',
+                                'border': '1px solid #e6e6e6'
+                            })
+                            .set_table_styles([
+                                {'selector': 'th', 'props': [
+                                    ('background-color', '#f0f2f6'),
+                                    ('color', '#0e1117'),
+                                    ('font-weight', 'bold'),
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'td', 'props': [
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'table', 'props': [
+                                    ('width', '100%'),
+                                    ('margin', '0 auto')
+                                ]}
+                            ]),
+                        use_container_width=True
+                    )
+                    
+                    time.sleep(1)
+                    
+            except Exception as e:
+                st.error(f"{test_type} 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                continue
+
+    # 결과 저장
+    st.session_state.accumulated_results[df_key] = df
+    st.session_state.accumulated_results['completed_batches'].add(batch_name)
+
+    return df
+
+def run_control_batch_test(batch_name, start_idx, end_idx):
+    """페르소나 없이 대조군 테스트를 실행하는 함수"""
+    ipip_batch_size, _ = get_batch_size(model_choice)
+    
+    # DataFrame 초기화 또는 기존 결과 불러오기
+    if 'control_ipip' not in st.session_state.accumulated_results:
+        st.session_state.accumulated_results['control_ipip'] = pd.DataFrame(
+            np.nan, 
+            index=[f"Control {i+1}" for i in range(len(personas))] + ['Control Average'],
+            columns=[f"Q{i+1}" for i in range(300)]
+        )
+    
+    control_df = st.session_state.accumulated_results['control_ipip'].copy()
+    
+    # 진행 상황 표시
+    st.write("### 대조군 IPIP 테스트 진행 상황")
+    progress_bar = st.progress(0)
+    result_table = st.empty()
+    
+    # 대조군 테스트 실행
+    for i in range(start_idx, end_idx):
+        all_control_scores = []
+        for j in range(0, 300, ipip_batch_size):
+            try:
+                batch_end = min(j + ipip_batch_size, 300)
+                batch_questions = ipip_questions['items'][j:batch_end]
+                
+                # 페르소나 없이 테스트 실행
+                empty_persona = {"personality": []}
+                control_responses = get_llm_response(empty_persona, batch_questions, 'IPIP')
+                
+                if control_responses and 'responses' in control_responses:
+                    scores = [r['score'] for r in control_responses['responses']]
+                    all_control_scores.extend(scores)
+                    
+                    current_scores = control_df.iloc[i].copy()
+                    current_scores[j:j+len(scores)] = scores
+                    control_df.iloc[i] = current_scores
+                    control_df.loc['Control Average'] = control_df.iloc[:-1].mean()
+                    
+                    # 진행 상황 업데이트
+                    progress = min(1.0, ((i - start_idx) * 300 + j + len(scores)) / ((end_idx - start_idx) * 300))
+                    progress_bar.progress(progress)
+                    
+                    # DataFrame 업데이트
+                    result_table.dataframe(
+                        control_df.fillna(0).round().astype(int).style
+                            .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                            .format("{:d}")
+                            .set_properties(**{
+                                'width': '40px',
+                                'text-align': 'center',
+                                'font-size': '13px',
+                                'border': '1px solid #e6e6e6'
+                            })
+                            .set_table_styles([
+                                {'selector': 'th', 'props': [
+                                    ('background-color', '#f0f2f6'),
+                                    ('color', '#0e1117'),
+                                    ('font-weight', 'bold'),
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'td', 'props': [
+                                    ('text-align', 'center')
+                                ]},
+                                {'selector': 'table', 'props': [
+                                    ('width', '100%'),
+                                    ('margin', '0 auto')
+                                ]}
+                            ]),
+                        use_container_width=True
+                    )
+                    
+                    time.sleep(1)
+                    
+            except Exception as e:
+                st.error(f"대조군 테스트 오류 (Control {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                continue
+    
+    # 결과 저장
+    st.session_state.accumulated_results['control_ipip'] = control_df
+    st.session_state.accumulated_results['completed_batches'].add(batch_name)
+    
+    return control_df
+
+# 배치 버튼 클릭 처리
+if test_mode == "전체 테스트 (분할 실행)":
+    # IPIP 테스트 배치
+    if ipip_batch1:
+        run_batch_test('ipip_batch1', 0, 10, test_type='IPIP')
+    if ipip_batch2:
+        run_batch_test('ipip_batch2', 10, 20, test_type='IPIP')
+    if ipip_batch3:
+        run_batch_test('ipip_batch3', 20, 30, test_type='IPIP')
+    if ipip_batch4:
+        run_batch_test('ipip_batch4', 30, 40, test_type='IPIP')
+    if ipip_batch5:
+        run_batch_test('ipip_batch5', 40, 50, test_type='IPIP')
 
     # BFI 테스트 배치
     if bfi_batch1:
@@ -708,8 +715,7 @@ if not st.session_state.accumulated_results['ipip'].empty:
     csv_data = pd.concat([
         st.session_state.accumulated_results['ipip'].add_prefix('IPIP_Q'),
         st.session_state.accumulated_results['bfi'].add_prefix('BFI_Q'),
-        st.session_state.accumulated_results.get('control_ipip', pd.DataFrame()).add_prefix('Control_IPIP_Q'),
-        st.session_state.accumulated_results.get('bfi_control', pd.DataFrame()).add_prefix('Control_BFI_Q')
+        st.session_state.accumulated_results.get('control_ipip', pd.DataFrame()).add_prefix('Control_IPIP_Q')
     ], axis=1)
     
     st.download_button(
