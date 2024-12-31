@@ -326,159 +326,65 @@ if test_mode == "전체 테스트 (분할 실행)":
         st.rerun()
 
 def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
+    """배치 테스트를 실행하는 함수"""
     ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
     batch_personas = personas[start_idx:end_idx]
     
     # DataFrame 초기화 또는 기존 결과 불러오기
-    if st.session_state.accumulated_results['ipip'].empty:
-        ipip_df = pd.DataFrame(
+    if st.session_state.accumulated_results[test_type.lower()].empty:
+        df = pd.DataFrame(
             np.nan, 
             index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
-            columns=[f"Q{i+1}" for i in range(300)]
+            columns=[f"Q{i+1}" for i in range(300 if test_type == 'IPIP' else 44)]
         )
     else:
-        ipip_df = st.session_state.accumulated_results['ipip'].copy()
+        df = st.session_state.accumulated_results[test_type.lower()].copy()
+
+    # 진행 상황 표시
+    st.write(f"### {test_type} 테스트 진행 상황")
+    progress_bar = st.progress(0)
+    result_table = st.empty()
     
-    if st.session_state.accumulated_results['bfi'].empty:
-        bfi_df = pd.DataFrame(
-            np.nan, 
-            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
-            columns=[f"Q{i+1}" for i in range(44)]
-        )
-    else:
-        bfi_df = st.session_state.accumulated_results['bfi'].copy()
-
-    # 진행 상황 표시를 위한 컨테이너 생성
-    if test_type == 'IPIP':
-        st.write("### IPIP 테스트 진행 상황")
-        progress_bar = st.progress(0)
-        result_table = st.empty()
+    # 테스트 실행
+    for i, persona in enumerate(batch_personas, start=start_idx):
+        batch_size = ipip_batch_size if test_type == 'IPIP' else bfi_batch_size
+        total_questions = 300 if test_type == 'IPIP' else 44
+        questions = ipip_questions if test_type == 'IPIP' else bfi_questions
         
-        # IPIP 테스트 실행
-        for i, persona in enumerate(batch_personas, start=start_idx):
-            # IPIP 테스트
-            all_ipip_scores = []
-            for j in range(0, 300, ipip_batch_size):
-                try:
-                    batch_end = min(j + ipip_batch_size, 300)
-                    batch_questions = ipip_questions['items'][j:batch_end]
-                    
-                    ipip_responses = get_llm_response(persona, batch_questions, 'IPIP')
-                    if ipip_responses and 'responses' in ipip_responses:
-                        scores = [r['score'] for r in ipip_responses['responses']]
-                        all_ipip_scores.extend(scores)
-                        
-                        current_scores = ipip_df.iloc[i].copy()
-                        current_scores[j:j+len(scores)] = scores
-                        ipip_df.iloc[i] = current_scores
-                        ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
-                        
-                        # 진행 상황 업데이트 (1.0을 초과하지 않도록 수정)
-                        progress = min(1.0, ((i - start_idx) * 300 + j + len(scores)) / (len(batch_personas) * 300))
-                        progress_bar.progress(progress)
-                        
-                        # DataFrame 업데이트
-                        result_table.dataframe(
-                            ipip_df.fillna(0).round().astype(int).style
-                                .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                .format("{:d}")
-                                .set_properties(**{
-                                    'width': '40px',
-                                    'text-align': 'center',
-                                    'font-size': '13px',
-                                    'border': '1px solid #e6e6e6'
-                                })
-                                .set_table_styles([
-                                    {'selector': 'th', 'props': [
-                                        ('background-color', '#f0f2f6'),
-                                        ('color', '#0e1117'),
-                                        ('font-weight', 'bold'),
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'td', 'props': [
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'table', 'props': [
-                                        ('width', '100%'),
-                                        ('margin', '0 auto')
-                                    ]}
-                                ]),
-                            use_container_width=True
-                        )
-                        
-                        time.sleep(1)  # 시각적 효과를 위한 짧은 대기
-                        
-                except Exception as e:
-                    st.error(f"IPIP 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
-                    continue
+        for j in range(0, total_questions, batch_size):
+            try:
+                batch_end = min(j + batch_size, total_questions)
+                batch_questions = questions[j:batch_end]
                 
-    else:  # BFI
-        st.write("### BFI 테스트 진행 상황")
-        progress_bar = st.progress(0)
-        result_table = st.empty()
-        
-        # BFI 테스트 실행
-        for i, persona in enumerate(batch_personas, start=start_idx):
-            # BFI 테스트 (유사한 방식으로 구현)
-            for j in range(0, 44, bfi_batch_size):
-                try:
-                    batch_end = min(j + bfi_batch_size, 44)
-                    batch_questions = bfi_questions[j:batch_end]
+                responses = get_llm_response(persona, batch_questions, test_type)
+                if responses and 'responses' in responses:
+                    scores = [r['score'] for r in responses['responses']]
                     
-                    bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
-                    if bfi_responses and 'responses' in bfi_responses:
-                        scores = [r['score'] for r in bfi_responses['responses']]
-                        
-                        current_scores = bfi_df.iloc[i].copy()
-                        current_scores[j:j+len(scores)] = scores
-                        bfi_df.iloc[i] = current_scores
-                        bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
-                        
-                        # 진행 상황 업데이트 (1.0을 초과하지 않도록 수정)
-                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(batch_personas) * 44))
-                        progress_bar.progress(progress)
-                        
-                        # DataFrame 업데이트
-                        result_table.dataframe(
-                            bfi_df.fillna(0).round().astype(int).style
-                                .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                .format("{:d}")
-                                .set_properties(**{
-                                    'width': '40px',
-                                    'text-align': 'center',
-                                    'font-size': '13px',
-                                    'border': '1px solid #e6e6e6'
-                                })
-                                .set_table_styles([
-                                    {'selector': 'th', 'props': [
-                                        ('background-color', '#f0f2f6'),
-                                        ('color', '#0e1117'),
-                                        ('font-weight', 'bold'),
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'td', 'props': [
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'table', 'props': [
-                                        ('width', '100%'),
-                                        ('margin', '0 auto')
-                                    ]}
-                                ]),
-                            use_container_width=True
-                        )
-                        
-                        time.sleep(1)  # 시각적 효과를 위한 짧은 대기
-                        
-                except Exception as e:
-                    st.error(f"BFI 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
-                    continue
+                    current_scores = df.iloc[i].copy()
+                    current_scores[j:j+len(scores)] = scores
+                    df.iloc[i] = current_scores
+                    df.loc['Average'] = df.iloc[:-1].mean()
+                    
+                    # 진행 상황 업데이트
+                    progress = min(1.0, ((i - start_idx) * total_questions + j + len(scores)) / ((end_idx - start_idx) * total_questions))
+                    progress_bar.progress(progress)
+                    
+                    # DataFrame 업데이트
+                    result_table.dataframe(create_styled_table(df), use_container_width=True)
+                    time.sleep(1)
+                    
+            except Exception as e:
+                st.error(f"{test_type} 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                continue
 
-    # 결과 누적 저장
-    st.session_state.accumulated_results['ipip'] = ipip_df
-    st.session_state.accumulated_results['bfi'] = bfi_df
+    # 결과 저장 및 completed_batches 업데이트
+    st.session_state.accumulated_results[test_type.lower()] = df
     st.session_state.accumulated_results['completed_batches'].add(batch_name)
+    
+    # 페이지 리프레시를 위한 rerun
+    st.rerun()
 
-    return ipip_df, bfi_df
+    return df
 
 # 배치 버튼 클릭 처리
 if test_mode == "전체 테스트 (분할 실행)":
