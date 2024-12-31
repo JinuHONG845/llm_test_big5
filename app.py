@@ -111,29 +111,6 @@ with col2:
             help="현재 Gemini Pro 모델만 사용 가능합니다."
         )
 
-# 테이블 초기화 함수 호출 (API 키 설정 전에 실행)
-initialize_tables()
-
-# API 키 설정
-if llm_choice == "GPT":
-    api_key = st.secrets.get("OPENAI_API_KEY")
-    if not api_key:
-        st.error("OpenAI API 키가 설정되지 않았습니다.")
-        st.stop()
-    openai.api_key = api_key
-elif llm_choice == "Claude":
-    api_key = st.secrets.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        st.error("Anthropic API 키가 설정되지 않았습니다.")
-        st.stop()
-    client = anthropic.Anthropic(api_key=api_key)
-else:  # Gemini
-    api_key = st.secrets.get("GOOGLE_API_KEY")
-    if not api_key:
-        st.error("Google API 키가 설정되지 않았습니다.")
-        st.stop()
-    genai.configure(api_key=api_key)
-
 def select_test_mode():
     print("\n전체 테스트를 시작합니다.")
     return "전체 테스트 (분할 실행)"
@@ -141,7 +118,7 @@ def select_test_mode():
 # test_mode 변수 정의
 test_mode = select_test_mode()
 
-# 테이블 초기화 함수
+# 테이블 초기화 함수 정의 및 호출
 def initialize_tables():
     if 'tables_initialized' not in st.session_state:
         # IPIP 테이블 초기화
@@ -214,127 +191,28 @@ def initialize_tables():
         
         st.session_state.tables_initialized = True
 
-@retry(
-    stop=stop_after_attempt(5),  # 최대 5번 재시도
-    wait=wait_exponential(multiplier=1, min=4, max=20),  # 4~20초 사이 대기시간
-    retry=(
-        retry_if_exception_type(openai.APIError) |
-        retry_if_exception_type(openai.APIConnectionError) |
-        retry_if_exception_type(openai.RateLimitError) |
-        retry_if_exception_type(anthropic.APIError) |
-        retry_if_exception_type(anthropic.APIConnectionError) |
-        retry_if_exception_type(anthropic.RateLimitError)
-    )
-)
-def get_llm_response(persona, questions, test_type):
-    """LLM을 사용하여 페르소나의 테스트 응답을 생성"""
-    try:
-        # 질문 목록 준비
-        if test_type == 'IPIP':
-            question_list = [q['item'] for q in questions]
-            scale_description = """1 = Very inaccurate
-2 = Moderately inaccurate
-3 = Neither
-4 = Moderately accurate
-5 = Very accurate"""
-        else:  # BFI
-            question_list = [q['question'] for q in questions]
-            scale_description = """1 = Disagree Strongly
-2 = Disagree a little
-3 = Neither agree nor disagree
-4 = Agree a little
-5 = Agree strongly"""
-        
-        # 프롬프트 구성
-        prompt = f"""Based on this persona: {', '.join(persona['personality'])}
+# 테이블 초기화 함수 호출
+initialize_tables()
 
-For each question, provide a rating from 1-5 where:
-{scale_description}
-
-Return ONLY a JSON object in this exact format:
-{{
-    "responses": [
-        {{"question": "<question text>", "score": <1-5>}},
-        ...
-    ]
-}}
-
-Questions to rate:
-{json.dumps(question_list, indent=2)}"""
-        
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                if llm_choice == "GPT":
-                    model_name = "gpt-4-turbo-preview" if model_choice == "GPT-4 Turbo" else "gpt-3.5-turbo"
-                    response = openai.chat.completions.create(
-                        model=model_name,
-                        messages=[
-                            {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=1.0,
-                        timeout=30
-                    )
-                    content = response.choices[0].message.content
-                    
-                elif llm_choice == "Claude":
-                    model_name = "claude-3-sonnet-20240229" if model_choice == "Claude 3 Sonnet" else "claude-3-haiku-20240307"
-                    response = client.messages.create(
-                        model=model_name,
-                        max_tokens=2000,
-                        system="You are a helpful assistant that responds only in valid JSON format.",
-                        messages=[{"role": "user", "content": prompt}],
-                        temperature=1.0,
-                        timeout=30
-                    )
-                    content = response.content[0].text
-                    
-                else:  # Gemini
-                    model_name = 'gemini-pro' if model_choice == "Gemini Pro" else 'gemini-nano'
-                    model = genai.GenerativeModel(model_name)
-                    response = model.generate_content(
-                        prompt,
-                        generation_config=genai.types.GenerationConfig(
-                            temperature=1.0
-                        )
-                    )
-                    content = response.text
-                
-                # JSON 파싱 및 검증
-                if content.startswith('```') and content.endswith('```'):
-                    content = content.split('```')[1]
-                    if content.startswith('json'):
-                        content = content[4:]
-                
-                result = json.loads(content.strip())
-                
-                # 응답 검증
-                if not result or 'responses' not in result:
-                    raise ValueError("Invalid response format")
-                if len(result['responses']) != len(question_list):
-                    raise ValueError("Incomplete response")
-                
-                time.sleep(2)  # API 호출 사이에 2초 대기
-                return result
-                
-            except (json.JSONDecodeError, ValueError) as e:
-                if attempt == max_retries - 1:
-                    st.error(f"응답 처리 중 오류 발생: {str(e)}")
-                    raise e
-                time.sleep(2 ** attempt)  # 지수 백오프
-                continue
-                
-            except Exception as e:
-                st.error(f"LLM API 오류: {str(e)}")
-                if attempt == max_retries - 1:
-                    raise e
-                time.sleep(2 ** attempt)
-                continue
-                
-    except Exception as e:
-        st.error(f"치명적인 오류 발생: {str(e)}")
-        raise e
+# API 키 설정
+if llm_choice == "GPT":
+    api_key = st.secrets.get("OPENAI_API_KEY")
+    if not api_key:
+        st.error("OpenAI API 키가 설정되지 않았습니다.")
+        st.stop()
+    openai.api_key = api_key
+elif llm_choice == "Claude":
+    api_key = st.secrets.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        st.error("Anthropic API 키가 설정되지 않았습니다.")
+        st.stop()
+    client = anthropic.Anthropic(api_key=api_key)
+else:  # Gemini
+    api_key = st.secrets.get("GOOGLE_API_KEY")
+    if not api_key:
+        st.error("Google API 키가 설정되지 않았습니다.")
+        st.stop()
+    genai.configure(api_key=api_key)
 
 # 배치 크기 조정 (모델에 따라)
 def get_batch_size(model):
