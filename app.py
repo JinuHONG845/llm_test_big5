@@ -294,19 +294,19 @@ st.write("### IPIP 배치 선택")
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    ipip_batch1 = st.button("IPIP Dummy 1-10", 
+    ipip_batch1 = st.button("IPIP 1-10", 
                       disabled='ipip_batch1' in st.session_state.accumulated_results['completed_batches'])
 with col2:
-    ipip_batch2 = st.button("IPIP Dummy 11-20", 
+    ipip_batch2 = st.button("IPIP 11-20", 
                       disabled='ipip_batch2' in st.session_state.accumulated_results['completed_batches'])
 with col3:
-    ipip_batch3 = st.button("IPIP Dummy 21-30", 
+    ipip_batch3 = st.button("IPIP 21-30", 
                       disabled='ipip_batch3' in st.session_state.accumulated_results['completed_batches'])
 with col4:
-    ipip_batch4 = st.button("IPIP Dummy 31-40", 
+    ipip_batch4 = st.button("IPIP 31-40", 
                       disabled='ipip_batch4' in st.session_state.accumulated_results['completed_batches'])
 with col5:
-    ipip_batch5 = st.button("IPIP Dummy 41-50", 
+    ipip_batch5 = st.button("IPIP 41-50", 
                       disabled='ipip_batch5' in st.session_state.accumulated_results['completed_batches'])
 
 # BFI 테스트 섹션
@@ -314,19 +314,19 @@ st.write("### BFI 배치 선택")
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    bfi_batch1 = st.button("BFI Dummy 1-10", 
+    bfi_batch1 = st.button("BFI 1-10", 
                       disabled='bfi_batch1' in st.session_state.accumulated_results['completed_batches'])
 with col2:
-    bfi_batch2 = st.button("BFI Dummy 11-20", 
+    bfi_batch2 = st.button("BFI 11-20", 
                       disabled='bfi_batch2' in st.session_state.accumulated_results['completed_batches'])
 with col3:
-    bfi_batch3 = st.button("BFI Dummy 21-30", 
+    bfi_batch3 = st.button("BFI 21-30", 
                       disabled='bfi_batch3' in st.session_state.accumulated_results['completed_batches'])
 with col4:
-    bfi_batch4 = st.button("BFI Dummy 31-40", 
+    bfi_batch4 = st.button("BFI 31-40", 
                       disabled='bfi_batch4' in st.session_state.accumulated_results['completed_batches'])
 with col5:
-    bfi_batch5 = st.button("BFI Dummy 41-50", 
+    bfi_batch5 = st.button("BFI 41-50", 
                       disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
 
 # 초기화 버튼
