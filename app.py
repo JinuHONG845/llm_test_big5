@@ -9,8 +9,15 @@ import time
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 import random  # 파일 상단에 추가
 
-# 페이지 설정
-st.set_page_config(layout="wide", page_title="LLM Big 5 Test")
+# 앱 기본 설정
+st.set_page_config(
+    page_title="Big 5 성격 검사",
+    page_icon="🧪",
+    layout="wide"
+)
+
+# 전역 변수로 test_mode 설정
+test_mode = "전체 테스트 (분할 실행)"  # 기본값 설정
 
 # 여백 줄정을 위한 CSS
 st.markdown("""
