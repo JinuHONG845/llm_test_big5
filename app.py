@@ -362,7 +362,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         bfi_df = pd.DataFrame(
             np.nan, 
             index=[f"{index_prefix} {i+1}" for i in range(len(personas))] + ['Average'],
-            columns=[f"Q{i+1}" for i in range(44)]
+            columns=[f"Q{i+1}" for i in range(44)]  # BFI는 44문항
         )
     else:
         bfi_df = st.session_state.accumulated_results['bfi'].copy()
@@ -438,7 +438,8 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         
         # BFI 테스트 실행
         for i, persona in enumerate(batch_personas, start=start_idx):
-            # BFI 테스트 (유사한 방식으로 구현)
+            all_bfi_scores = []
+            # BFI 테스트 (0부터 44까지)
             for j in range(0, 44, bfi_batch_size):
                 try:
                     batch_end = min(j + bfi_batch_size, 44)
@@ -447,13 +448,14 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                     bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
                     if bfi_responses and 'responses' in bfi_responses:
                         scores = [r['score'] for r in bfi_responses['responses']]
+                        all_bfi_scores.extend(scores)
                         
                         current_scores = bfi_df.iloc[i].copy()
                         current_scores[j:j+len(scores)] = scores
                         bfi_df.iloc[i] = current_scores
                         bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                         
-                        # 진행 상황 업데이트 (1.0을 초과하지 않도록 수정)
+                        # 진행 상황 업데이트
                         progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(batch_personas) * 44))
                         progress_bar.progress(progress)
                         
@@ -486,7 +488,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                             use_container_width=True
                         )
                         
-                        time.sleep(1)  # 시각적 효과를 위한 짧은 대기
+                        time.sleep(1)
                         
                 except Exception as e:
                     st.error(f"BFI 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
