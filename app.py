@@ -158,7 +158,6 @@ else:  # Gemini
     )
 )
 def get_llm_response(persona, questions, test_type):
-    """LLM을 사용하여 페스트 응답을 생성"""
     try:
         # 프롬프트 구성
         if test_mode == "페르소나 테스트":
@@ -211,13 +210,17 @@ Return only numbers in array format [n,n,n,...] where n is 1-5."""
             }
             
             return result
+            
+    except Exception as e:
+        st.error(f"LLM API 오류: {str(e)}")
+        return None
 
 # 배치 크기 조정 (모델에 따라)
 def get_batch_size(model):
     if model in ["GPT-4 Turbo", "Claude 3 Sonnet", "Gemini Pro"]:
-        return 25, 5  # IPIP 배치 크기, BFI 배치 크기
+        return 25, 10
     else:
-        return 10, 3  # 더 작은 배치 크기
+        return 15, 8
 
 # 세션 상태 초기화
 if 'accumulated_results' not in st.session_state:
