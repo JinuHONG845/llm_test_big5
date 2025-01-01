@@ -274,12 +274,12 @@ Questions to rate:
         st.error(f"치명적인 오류 발생: {str(e)}")
         raise e
 
-# 배치 크기 조정 (모델에 따라)
+# 배치 크기 조정 함수 수정
 def get_batch_size(model):
     if model in ["GPT-4 Turbo", "Claude 3 Sonnet", "Gemini Pro"]:
-        return 25, 5  # IPIP 배치 크기, BFI 배치 크기
+        return 25, 15  # IPIP 배치 크기, BFI 배치 크기 (기존 5에서 15로 증가)
     else:
-        return 10, 3  # 더 작은 배치 크기
+        return 10, 10  # 더 작은 배치 크기
 
 # 세션 상태 초기화
 if 'accumulated_results' not in st.session_state:
@@ -309,25 +309,19 @@ with col5:
     ipip_batch5 = st.button("IPIP 41-50번", 
                       disabled='ipip_batch5' in st.session_state.accumulated_results['completed_batches'])
 
-# BFI 테스트 섹션
+# BFI 테스트 섹션 수정
 st.write("### BFI 페르소나 배치 선택")
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3 = st.columns(3)  # 5개에서 3개로 변경하여 더 큰 배치 처리
 
 with col1:
-    bfi_batch1 = st.button("BFI 1-9번", 
+    bfi_batch1 = st.button("BFI 1-15번", 
                       disabled='bfi_batch1' in st.session_state.accumulated_results['completed_batches'])
 with col2:
-    bfi_batch2 = st.button("BFI 10-18번", 
+    bfi_batch2 = st.button("BFI 16-30번", 
                       disabled='bfi_batch2' in st.session_state.accumulated_results['completed_batches'])
 with col3:
-    bfi_batch3 = st.button("BFI 19-27번", 
+    bfi_batch3 = st.button("BFI 31-44번", 
                       disabled='bfi_batch3' in st.session_state.accumulated_results['completed_batches'])
-with col4:
-    bfi_batch4 = st.button("BFI 28-36번", 
-                      disabled='bfi_batch4' in st.session_state.accumulated_results['completed_batches'])
-with col5:
-    bfi_batch5 = st.button("BFI 37-44번", 
-                      disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
 
 # 초기화 버튼
 if st.button("테스트 초기화"):
@@ -439,52 +433,37 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         # BFI 테스트 실행
         for i, persona in enumerate(batch_personas, start=start_idx):
             all_bfi_scores = []
-            # BFI 테스트 (0부터 44까지)
-            for j in range(0, 44, bfi_batch_size):
+            # BFI 테스트 (start_idx부터 end_idx까지)
+            for j in range(start_idx, end_idx, bfi_batch_size):
                 try:
-                    batch_end = min(j + bfi_batch_size, 44)
+                    batch_end = min(j + bfi_batch_size, end_idx)
                     batch_questions = bfi_questions[j:batch_end]
+                    
+                    if not batch_questions:  # 빈 배치 체크
+                        continue
                     
                     bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
                     if bfi_responses and 'responses' in bfi_responses:
                         scores = [r['score'] for r in bfi_responses['responses']]
                         all_bfi_scores.extend(scores)
                         
+                        # 현재 진행 상황 표시
+                        st.write(f"처리 중: {j+1}에서 {batch_end}번 문항")
+                        
                         current_scores = bfi_df.iloc[i].copy()
-                        current_scores[j:j+len(scores)] = scores
+                        current_scores[j:batch_end] = scores
                         bfi_df.iloc[i] = current_scores
                         bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                         
-                        # 진행 상황 업데이트
-                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(batch_personas) * 44))
+                        # 진행 상황 업데이트 (전체 44문항 기준)
+                        progress = min(1.0, len(all_bfi_scores) / 44)
                         progress_bar.progress(progress)
                         
-                        # DataFrame 업데이트
+                        # DataFrame 업데이트 표시
                         result_table.dataframe(
                             bfi_df.fillna(0).round().astype(int).style
                                 .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                .format("{:d}")
-                                .set_properties(**{
-                                    'width': '40px',
-                                    'text-align': 'center',
-                                    'font-size': '13px',
-                                    'border': '1px solid #e6e6e6'
-                                })
-                                .set_table_styles([
-                                    {'selector': 'th', 'props': [
-                                        ('background-color', '#f0f2f6'),
-                                        ('color', '#0e1117'),
-                                        ('font-weight', 'bold'),
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'td', 'props': [
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'table', 'props': [
-                                        ('width', '100%'),
-                                        ('margin', '0 auto')
-                                    ]}
-                                ]),
+                                .format("{:d}"),
                             use_container_width=True
                         )
                         
@@ -501,7 +480,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
 
     return ipip_df, bfi_df
 
-# 배치 버튼 클릭 처리
+# 배치 버튼 클릭 처리 수정
 if ipip_batch1:
     ipip_df, _ = run_batch_test('ipip_batch1', 0, 10, test_type='IPIP')
 elif ipip_batch2:
@@ -513,15 +492,11 @@ elif ipip_batch4:
 elif ipip_batch5:
     ipip_df, _ = run_batch_test('ipip_batch5', 40, 50, test_type='IPIP')
 elif bfi_batch1:
-    _, bfi_df = run_batch_test('bfi_batch1', 0, 9, test_type='BFI')
+    _, bfi_df = run_batch_test('bfi_batch1', 0, 15, test_type='BFI')
 elif bfi_batch2:
-    _, bfi_df = run_batch_test('bfi_batch2', 9, 18, test_type='BFI')
+    _, bfi_df = run_batch_test('bfi_batch2', 15, 30, test_type='BFI')
 elif bfi_batch3:
-    _, bfi_df = run_batch_test('bfi_batch3', 18, 27, test_type='BFI')
-elif bfi_batch4:
-    _, bfi_df = run_batch_test('bfi_batch4', 27, 36, test_type='BFI')
-elif bfi_batch5:
-    _, bfi_df = run_batch_test('bfi_batch5', 36, 44, test_type='BFI')
+    _, bfi_df = run_batch_test('bfi_batch3', 30, 44, test_type='BFI')
 
 # CSV 파일 생성 및 다운로드 부분
 if not st.session_state.accumulated_results['ipip'].empty:
