@@ -367,7 +367,6 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
     else:
         bfi_df = st.session_state.accumulated_results['bfi'].copy()
 
-    # 진행 상황 표시를 위한 컨테이너 생성
     if test_type == 'IPIP':
         st.write("### IPIP 테스트 진행 상황")
         progress_bar = st.progress(0)
@@ -436,27 +435,40 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         progress_bar = st.progress(0)
         result_table = st.empty()
         
+        total_questions = 44
+        
         # BFI 테스트 실행
         for i, persona in enumerate(batch_personas, start=start_idx):
             all_bfi_scores = []
+            
             # 각 페르소나/더미에 대해 전체 44개 문항 처리
-            for j in range(0, 44, bfi_batch_size):
+            for j in range(0, total_questions, bfi_batch_size):
                 try:
-                    batch_end = min(j + bfi_batch_size, 44)
+                    batch_end = min(j + bfi_batch_size, total_questions)
                     batch_questions = bfi_questions[j:batch_end]
+                    
+                    st.write(f"처리 중: Dummy {i+1}, 문항 {j+1}-{batch_end}")  # 디버깅용
                     
                     bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
                     if bfi_responses and 'responses' in bfi_responses:
                         scores = [r['score'] for r in bfi_responses['responses']]
+                        
+                        # 점수 할당 전 디버깅 정보
+                        st.write(f"배치 크기: {batch_end-j}, 응답 수: {len(scores)}")
+                        
+                        # 각 점수를 개별적으로 할당
+                        for idx, score in enumerate(scores):
+                            col_name = f"Q{j+idx+1}"
+                            bfi_df.at[f"{index_prefix} {i+1}", col_name] = score
+                        
                         all_bfi_scores.extend(scores)
                         
-                        current_scores = bfi_df.iloc[i].copy()
-                        current_scores[j:batch_end] = scores
-                        bfi_df.iloc[i] = current_scores
+                        # 평균 업데이트
                         bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                         
-                        # 진행 상황 업데이트 (현재 페르소나의 진행률)
-                        progress = min(1.0, ((i - start_idx) * 44 + len(all_bfi_scores)) / ((end_idx - start_idx) * 44))
+                        # 진행 상황 업데이트
+                        progress = min(1.0, ((i - start_idx) * total_questions + len(all_bfi_scores)) / 
+                                    ((end_idx - start_idx) * total_questions))
                         progress_bar.progress(progress)
                         
                         # DataFrame 업데이트
@@ -470,7 +482,8 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                         time.sleep(1)
                         
                 except Exception as e:
-                    st.error(f"BFI 테스트 오류 (Dummy {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                    st.error(f"BFI 테스트 오류 (Dummy {i+1}, 문항 {j+1}-{batch_end}): {str(e)}")
+                    st.write("오류 발생 시점의 상태:", {"batch_size": batch_end-j, "scores": scores if 'scores' in locals() else None})
                     continue
 
     # 결과 누적 저장
