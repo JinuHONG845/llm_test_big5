@@ -115,6 +115,28 @@ with st.sidebar:
             horizontal=True,
             help="현재 Gemini Pro 모델만 사용 가능합니다."
         )
+    
+    st.divider()  # 구분선 추가
+
+    # 대조군 설정 섹션
+    st.title("대조군 설정")
+    is_control_group = st.checkbox("대조군 테스트 실행", 
+                                 help="페르소나 없이 IPIP와 BFI 테스트를 실행합니다.")
+    
+    if is_control_group:
+        control_test_type = st.radio(
+            "대조군 테스트 유형",
+            ("IPIP", "BFI", "모두"),
+            horizontal=True
+        )
+        
+        num_control_tests = st.number_input(
+            "테스트 반복 횟수",
+            min_value=1,
+            max_value=10,
+            value=3,
+            help="대조군 테스트를 몇 번 반복할지 설정합니다."
+        )
 
 def select_test_mode():
     print("\n전체 테스트를 시작합니다.")
@@ -523,3 +545,32 @@ if not st.session_state.accumulated_results['ipip'].empty:
         file_name="personality_test_results.csv",
         mime="text/csv"
     )
+
+# 테스트 실행 부분 (기존 코드 아래에 추가)
+if is_control_group:
+    st.write("### 대조군 테스트 실행")
+    progress_bar = st.progress(0)
+    
+    if control_test_type in ["IPIP", "모두"]:
+        st.write("#### IPIP 대조군 테스트")
+        for i in range(num_control_tests):
+            # IPIP 테스트 실행 (페르소나 없이)
+            empty_persona = {"personality": []}  # 빈 페르소나
+            try:
+                responses = get_llm_response(empty_persona, ipip_questions['items'][:10], 'IPIP')  # 예시로 10문항만
+                st.write(f"테스트 {i+1} 완료")
+                progress_bar.progress((i + 1) / num_control_tests)
+            except Exception as e:
+                st.error(f"IPIP 테스트 {i+1} 실패: {str(e)}")
+    
+    if control_test_type in ["BFI", "모두"]:
+        st.write("#### BFI 대조군 테스트")
+        for i in range(num_control_tests):
+            # BFI 테스트 실행 (페르소나 없이)
+            empty_persona = {"personality": []}  # 빈 페르소나
+            try:
+                responses = get_llm_response(empty_persona, bfi_questions[:10], 'BFI')  # 예시로 10문항만
+                st.write(f"테스트 {i+1} 완료")
+                progress_bar.progress((i + 1) / num_control_tests)
+            except Exception as e:
+                st.error(f"BFI 테스트 {i+1} 실패: {str(e)}")
