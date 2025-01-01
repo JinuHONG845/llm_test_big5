@@ -8,6 +8,7 @@ import google.generativeai as genai
 import time
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 import random  # 파일 상단에 추가
+import re
 
 # 앱 기본 설정
 st.set_page_config(
@@ -197,6 +198,9 @@ Return ONLY comma-separated numbers (e.g., 4,2,5,1,3). No other text or explanat
 Questions to rate:
 {json.dumps(question_list, indent=2)}"""
 
+        # 시스템 메시지를 더 명확하게 수정
+        system_message = "You must respond with ONLY comma-separated numbers (e.g., 4,2,5,1,3). Do not include any other text, JSON, or formatting."
+        
         max_retries = 3
         for attempt in range(max_retries):
             try:
@@ -205,7 +209,7 @@ Questions to rate:
                     response = openai.chat.completions.create(
                         model=model_name,
                         messages=[
-                            {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
+                            {"role": "system", "content": system_message},
                             {"role": "user", "content": prompt}
                         ],
                         temperature=1.0,
@@ -218,7 +222,7 @@ Questions to rate:
                     response = client.messages.create(
                         model=model_name,
                         max_tokens=2000,
-                        system="You are a helpful assistant that responds only in valid JSON format.",
+                        system=system_message,
                         messages=[{"role": "user", "content": prompt}],
                         temperature=1.0,
                         timeout=30
@@ -229,22 +233,46 @@ Questions to rate:
                     model_name = 'gemini-pro' if model_choice == "Gemini Pro" else 'gemini-nano'
                     model = genai.GenerativeModel(model_name)
                     response = model.generate_content(
-                        prompt,
+                        f"{system_message}\n\n{prompt}",
                         generation_config=genai.types.GenerationConfig(
                             temperature=1.0
                         )
                     )
                     content = response.text
-                
-                # JSON 파싱 및 검증
+
+                # 응답 정제 강화
                 content = content.strip()
-                if content.startswith('```') and content.endswith('```'):
-                    content = content.split('```')[1]
-                    if content.startswith('json'):
-                        content = content[4:]
                 
-                # 숫자만 추출
+                # 모든 불필요한 문자 제거
+                # JSON, 대괄호, 중괄호 등 제거
+                content = re.sub(r'[\[\]{}"\'\n\r]', '', content)
+                
+                # "rating:", "response:", 등의 텍스트 제거
+                content = re.sub(r'[a-zA-Z:]+', '', content)
+                
+                # 연속된 쉼표를 하나로
+                content = re.sub(r',+', ',', content)
+                
+                # 앞뒤 쉼표 제거
+                content = content.strip(',')
+                
+                # 숫자와 쉼표만 남기고 모두 제거
+                content = re.sub(r'[^0-9,]', '', content)
+                
+                # 빈 문자열 체크
+                if not content:
+                    raise ValueError("No valid numbers found in response")
+                
+                # 숫자 추출 및 검증
                 scores = [int(x.strip()) for x in content.split(',')]
+                
+                # 점수 범위 검증 (1-5)
+                if not all(1 <= score <= 5 for score in scores):
+                    raise ValueError("Scores must be between 1 and 5")
+                
+                # 응답 수 검증
+                if len(scores) != len(question_list):
+                    raise ValueError(f"Expected {len(question_list)} responses, got {len(scores)}")
                 
                 # 기존 형식으로 변환
                 result = {
@@ -253,24 +281,10 @@ Questions to rate:
                     ]
                 }
                 
-                # 응답 검증
-                if not result or 'responses' not in result:
-                    raise ValueError("Invalid response format")
-                if len(result['responses']) != len(question_list):
-                    raise ValueError("Incomplete response")
-                
-                time.sleep(2)  # API 호출 사이에 2초 대기
+                time.sleep(2)
                 return result
                 
-            except (json.JSONDecodeError, ValueError) as e:
-                if attempt == max_retries - 1:
-                    st.error(f"응답 처리 중 오류 발생: {str(e)}")
-                    raise e
-                time.sleep(2 ** attempt)  # 지수 백오프
-                continue
-                
             except Exception as e:
-                st.error(f"LLM API 오류: {str(e)}")
                 if attempt == max_retries - 1:
                     raise e
                 time.sleep(2 ** attempt)
