@@ -123,13 +123,8 @@ with st.sidebar:
                 key="main_model_claude"
             )
         else:  # Gemini
-            model_choice = st.radio(
-                "Gemini 모델 선택",
-                ("Gemini Pro",),  # 단일 옵션
-                horizontal=True,
-                help="현재 Gemini Pro 모델만 사용 가능합니다.",
-                key="main_model_gemini"
-            )
+            model_choice = "gemini-pro"  # Gemini Pro 모델로 고정
+            st.info("Gemini Pro 모델이 사용됩니다.")
         
         # 대조군 변수 초기화
         control_llm_choice = None
