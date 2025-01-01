@@ -160,126 +160,64 @@ else:  # Gemini
 def get_llm_response(persona, questions, test_type):
     """LLM을 사용하여 페스트 응답을 생성"""
     try:
-        # 질문 목록 준비
-        if test_type == 'IPIP':
-            question_list = [q['item'] for q in questions]
-            scale_description = """1 = Very inaccurate
-2 = Moderately inaccurate
-3 = Neither
-4 = Moderately accurate
-5 = Very accurate"""
-        else:  # BFI
-            question_list = [q['question'] for q in questions]
-            scale_description = """1 = Disagree Strongly
-2 = Disagree a little
-3 = Neither agree nor disagree
-4 = Agree a little
-5 = Agree strongly"""
-        
-        # 프롬프트 구성 - 테스트 모드에 따라 다르게
+        # 프롬프트 구성
         if test_mode == "페르소나 테스트":
-            prompt = f"""Based on this persona: {', '.join(persona['personality'])}
+            prompt = f"""Given the following persona: {json.dumps(persona)}
 
-For each question, provide a rating from 1-5 where:
-{scale_description}"""
-        else:  # 대조군 테스트
-            prompt = f"""As an AI, please answer these personality test questions honestly.
-Rate each question from 1-5 where:
-{scale_description}"""
+For each question, rate on a scale of 1-5 where:
+1 = Strongly Disagree
+2 = Disagree
+3 = Neutral
+4 = Agree
+5 = Strongly Agree
 
-        prompt += f"""
+Questions: {json.dumps(questions)}
 
-Return ONLY a JSON object in this exact format:
-{{
-    "responses": [
-        {{"question": "<question text>", "score": <1-5>}},
-        ...
-    ]
-}}
+Return only numbers in array format [n,n,n,...] where n is 1-5."""
 
-Questions to rate:
-{json.dumps(question_list, indent=2)}"""
-        
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                if llm_choice == "GPT":
-                    model_name = "gpt-4-turbo-preview" if model_choice == "GPT-4 Turbo" else "gpt-3.5-turbo"
-                    response = openai.chat.completions.create(
-                        model=model_name,
-                        messages=[
-                            {"role": "system", "content": "You are a helpful assistant that responds only in valid JSON format."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=1.0,
-                        timeout=30
-                    )
-                    content = response.choices[0].message.content
-                    
-                elif llm_choice == "Claude":
-                    model_name = "claude-3-sonnet-20240229" if model_choice == "Claude 3 Sonnet" else "claude-3-haiku-20240307"
-                    response = client.messages.create(
-                        model=model_name,
-                        max_tokens=2000,
-                        system="You are a helpful assistant that responds only in valid JSON format.",
-                        messages=[{"role": "user", "content": prompt}],
-                        temperature=1.0,
-                        timeout=30
-                    )
-                    content = response.content[0].text
-                    
-                else:  # Gemini
-                    model_name = 'gemini-pro' if model_choice == "Gemini Pro" else 'gemini-nano'
-                    model = genai.GenerativeModel(model_name)
-                    response = model.generate_content(
-                        prompt,
-                        generation_config=genai.types.GenerationConfig(
-                            temperature=1.0
-                        )
-                    )
-                    content = response.text
-                
-                # JSON 파싱 및 검증
-                if content.startswith('```') and content.endswith('```'):
-                    content = content.split('```')[1]
-                    if content.startswith('json'):
-                        content = content[4:]
-                
-                result = json.loads(content.strip())
-                
-                # 응답 검증
-                if not result or 'responses' not in result:
-                    raise ValueError("Invalid response format")
-                if len(result['responses']) != len(question_list):
-                    raise ValueError("Incomplete response")
-                
-                time.sleep(2)  # API 호출 사이에 2초 대기
-                return result
-                
-            except (json.JSONDecodeError, ValueError) as e:
-                if attempt == max_retries - 1:
-                    st.error(f"응답 처리 중 오류 발생: {str(e)}")
-                    raise e
-                time.sleep(2 ** attempt)  # 지수 백오프
-                continue
-                
-            except Exception as e:
-                st.error(f"LLM API 오류: {str(e)}")
-                if attempt == max_retries - 1:
-                    raise e
-                time.sleep(2 ** attempt)
-                continue
-                
-    except Exception as e:
-        st.error(f"치명적인 오류 발생: {str(e)}")
-        raise e
+        else:
+            prompt = f"""For each question, rate on a scale of 1-5 where:
+1 = Strongly Disagree
+2 = Disagree
+3 = Neutral
+4 = Agree
+5 = Strongly Agree
+
+Questions: {json.dumps(questions)}
+
+Return only numbers in array format [n,n,n,...] where n is 1-5."""
+
+        if llm_choice == "GPT":
+            model_name = "gpt-4-turbo-preview" if model_choice == "GPT-4 Turbo" else "gpt-3.5-turbo"
+            response = openai.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": "You are a scoring assistant. Return only number arrays where each number is 1-5."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=1.0,
+                timeout=15
+            )
+            content = response.choices[0].message.content
+            
+            # 응답을 단순 배열로 파싱
+            scores = json.loads(content.strip())
+            
+            # 기존 형식으로 변환
+            result = {
+                "responses": [
+                    {"question": q, "score": s} for q, s in zip(questions, scores)
+                ]
+            }
+            
+            return result
 
 # 배치 크기 조정 (모델에 따라)
 def get_batch_size(model):
     if model in ["GPT-4 Turbo", "Claude 3 Sonnet", "Gemini Pro"]:
-        return 25, 10  # IPIP 배치 크기, BFI 배치 크기 (5에서 10으로 증가)
+        return 25, 5  # IPIP 배치 크기, BFI 배치 크기
     else:
-        return 15, 8  # 더 작은 모델용 배치 크기도 증가
+        return 10, 3  # 더 작은 배치 크기
 
 # 세션 상태 초기화
 if 'accumulated_results' not in st.session_state:
@@ -436,63 +374,63 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         progress_bar = st.progress(0)
         result_table = st.empty()
         
-        total_questions = 44
-        max_retries = 3
-        
+        # BFI 테스트 실행
         for i, persona in enumerate(batch_personas, start=start_idx):
             all_bfi_scores = []
-            current_question = 0
-            
-            while current_question < total_questions:
-                batch_end = min(current_question + bfi_batch_size, total_questions)
-                retry_count = 0
-                
-                while retry_count < max_retries:
-                    try:
-                        current_batch = bfi_questions[current_question:batch_end]
-                        bfi_responses = get_llm_response(persona, current_batch, 'BFI')
+            # BFI 테스트 (0부터 44까지)
+            for j in range(0, 44, bfi_batch_size):
+                try:
+                    batch_end = min(j + bfi_batch_size, 44)
+                    batch_questions = bfi_questions[j:batch_end]
+                    
+                    bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
+                    if bfi_responses and 'responses' in bfi_responses:
+                        scores = [r['score'] for r in bfi_responses['responses']]
+                        all_bfi_scores.extend(scores)
                         
-                        if bfi_responses and 'responses' in bfi_responses:
-                            scores = [r['score'] for r in bfi_responses['responses']]
-                            
-                            if len(scores) == len(current_batch):
-                                for idx, score in enumerate(scores):
-                                    col_name = f"Q{current_question+idx+1}"
-                                    bfi_df.at[f"{index_prefix} {i+1}", col_name] = score
-                                
-                                all_bfi_scores.extend(scores)
-                                bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
-                                
-                                progress = min(1.0, ((i - start_idx) * total_questions + len(all_bfi_scores)) / 
-                                            ((end_idx - start_idx) * total_questions))
-                                progress_bar.progress(progress)
-                                
-                                # DataFrame 업데이트 빈도 줄이기 (매 5문항마다)
-                                if len(all_bfi_scores) % 5 == 0:
-                                    result_table.dataframe(
-                                        bfi_df.fillna(0).round().astype(int).style
-                                            .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                            .format("{:d}"),
-                                        use_container_width=True
-                                    )
-                                
-                                time.sleep(1)  # 대기 시간 2초에서 1초로 감소
-                                break
-                                
-                            else:
-                                raise ValueError("응답 수 불일치")
-                                
-                        else:
-                            raise ValueError("유효하지 않은 응답 형식")
-                            
-                    except Exception as e:
-                        retry_count += 1
-                        if retry_count == max_retries:
-                            st.error(f"문항 처리 실패: {current_question+1}-{batch_end}")
-                        time.sleep(retry_count)  # 지수 백오프 대신 선형 백오프 사용
-                        continue
-                
-                current_question = batch_end
+                        current_scores = bfi_df.iloc[i].copy()
+                        current_scores[j:j+len(scores)] = scores
+                        bfi_df.iloc[i] = current_scores
+                        bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
+                        
+                        # 진행 상황 업데이트
+                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(batch_personas) * 44))
+                        progress_bar.progress(progress)
+                        
+                        # DataFrame 업데이트
+                        result_table.dataframe(
+                            bfi_df.fillna(0).round().astype(int).style
+                                .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                                .format("{:d}")
+                                .set_properties(**{
+                                    'width': '40px',
+                                    'text-align': 'center',
+                                    'font-size': '13px',
+                                    'border': '1px solid #e6e6e6'
+                                })
+                                .set_table_styles([
+                                    {'selector': 'th', 'props': [
+                                        ('background-color', '#f0f2f6'),
+                                        ('color', '#0e1117'),
+                                        ('font-weight', 'bold'),
+                                        ('text-align', 'center')
+                                    ]},
+                                    {'selector': 'td', 'props': [
+                                        ('text-align', 'center')
+                                    ]},
+                                    {'selector': 'table', 'props': [
+                                        ('width', '100%'),
+                                        ('margin', '0 auto')
+                                    ]}
+                                ]),
+                            use_container_width=True
+                        )
+                        
+                        time.sleep(1)
+                        
+                except Exception as e:
+                    st.error(f"BFI 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                    continue
 
     # 결과 누적 저장
     st.session_state.accumulated_results['ipip'] = ipip_df
