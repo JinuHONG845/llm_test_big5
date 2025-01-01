@@ -277,7 +277,7 @@ Questions to rate:
 # 배치 크기 조정 (모델에 따라)
 def get_batch_size(model):
     if model in ["GPT-4 Turbo", "Claude 3 Sonnet", "Gemini Pro"]:
-        return 25, 5  # IPIP 배치 크기, BFI 배치 크기
+        return 25, 5  # IPIP 배치 크기, BFI 배치 크기 (더 작게 조정)
     else:
         return 10, 3  # 더 작은 배치 크기
 
@@ -436,55 +436,74 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         result_table = st.empty()
         
         total_questions = 44
+        max_retries = 3  # 최대 재시도 횟수
         
         # BFI 테스트 실행
         for i, persona in enumerate(batch_personas, start=start_idx):
             all_bfi_scores = []
             
             # 각 페르소나/더미에 대해 전체 44개 문항 처리
-            for j in range(0, total_questions, bfi_batch_size):
-                try:
-                    batch_end = min(j + bfi_batch_size, total_questions)
-                    batch_questions = bfi_questions[j:batch_end]
-                    
-                    st.write(f"처리 중: Dummy {i+1}, 문항 {j+1}-{batch_end}")  # 디버깅용
-                    
-                    bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
-                    if bfi_responses and 'responses' in bfi_responses:
-                        scores = [r['score'] for r in bfi_responses['responses']]
+            j = 0
+            while j < total_questions:
+                batch_end = min(j + bfi_batch_size, total_questions)
+                retry_count = 0
+                
+                while retry_count < max_retries:
+                    try:
+                        batch_questions = bfi_questions[j:batch_end]
                         
-                        # 점수 할당 전 디버깅 정보
-                        st.write(f"배치 크기: {batch_end-j}, 응답 수: {len(scores)}")
+                        st.write(f"처리 중: {index_prefix} {i+1}, 문항 {j+1}-{batch_end}")
                         
-                        # 각 점수를 개별적으로 할당
-                        for idx, score in enumerate(scores):
-                            col_name = f"Q{j+idx+1}"
-                            bfi_df.at[f"{index_prefix} {i+1}", col_name] = score
+                        bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
+                        if bfi_responses and 'responses' in bfi_responses:
+                            scores = [r['score'] for r in bfi_responses['responses']]
+                            
+                            if len(scores) == len(batch_questions):  # 응답 수 확인
+                                st.write(f"배치 크기: {batch_end-j}, 응답 수: {len(scores)}")
+                                
+                                # 각 점수를 개별적으로 할당
+                                for idx, score in enumerate(scores):
+                                    col_name = f"Q{j+idx+1}"
+                                    bfi_df.at[f"{index_prefix} {i+1}", col_name] = score
+                                
+                                all_bfi_scores.extend(scores)
+                                
+                                # 평균 업데이트
+                                bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
+                                
+                                # 진행 상황 업데이트
+                                progress = min(1.0, ((i - start_idx) * total_questions + len(all_bfi_scores)) / 
+                                            ((end_idx - start_idx) * total_questions))
+                                progress_bar.progress(progress)
+                                
+                                # DataFrame 업데이트
+                                result_table.dataframe(
+                                    bfi_df.fillna(0).round().astype(int).style
+                                        .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                                        .format("{:d}"),
+                                    use_container_width=True
+                                )
+                                
+                                time.sleep(2)  # API 호출 간격 늘림
+                                break  # 성공적으로 처리됨
+                                
+                            else:
+                                raise ValueError(f"응답 수 불일치: 예상 {len(batch_questions)}, 실제 {len(scores)}")
+                                
+                        else:
+                            raise ValueError("유효하지 않은 응답 형식")
+                            
+                    except Exception as e:
+                        retry_count += 1
+                        st.warning(f"재시도 {retry_count}/{max_retries} - {str(e)}")
+                        time.sleep(2 * retry_count)  # 지수 백오프
+                        continue
                         
-                        all_bfi_scores.extend(scores)
-                        
-                        # 평균 업데이트
-                        bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
-                        
-                        # 진행 상황 업데이트
-                        progress = min(1.0, ((i - start_idx) * total_questions + len(all_bfi_scores)) / 
-                                    ((end_idx - start_idx) * total_questions))
-                        progress_bar.progress(progress)
-                        
-                        # DataFrame 업데이트
-                        result_table.dataframe(
-                            bfi_df.fillna(0).round().astype(int).style
-                                .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                .format("{:d}"),
-                            use_container_width=True
-                        )
-                        
-                        time.sleep(1)
-                        
-                except Exception as e:
-                    st.error(f"BFI 테스트 오류 (Dummy {i+1}, 문항 {j+1}-{batch_end}): {str(e)}")
-                    st.write("오류 발생 시점의 상태:", {"batch_size": batch_end-j, "scores": scores if 'scores' in locals() else None})
-                    continue
+                if retry_count == max_retries:
+                    st.error(f"최대 재시도 횟수 초과 - {index_prefix} {i+1}, 문항 {j+1}-{batch_end}")
+                    # 실패한 배치는 건너뛰고 다음으로 진행
+                
+                j = batch_end  # 다음 배치로 이동
 
     # 결과 누적 저장
     st.session_state.accumulated_results['ipip'] = ipip_df
