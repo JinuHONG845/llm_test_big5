@@ -86,6 +86,15 @@ except json.JSONDecodeError as e:
 
 # LLM 선택 및 설정 부분을 사이드바로 이동
 with st.sidebar:
+    st.title("테스트 설정")
+    
+    # 테스트 모드 선택 추가
+    test_mode = st.radio(
+        "테스트 모드 선택",
+        ("페르소나 테스트", "대조군 테스트"),
+        help="페르소나 테스트: 정의된 페르소나로 테스트 수행\n대조군 테스트: LLM이 자율적으로 응답"
+    )
+    
     st.title("LLM 설정")
     llm_choice = st.radio(
         "LLM 선택",
@@ -149,7 +158,7 @@ else:  # Gemini
     )
 )
 def get_llm_response(persona, questions, test_type):
-    """LLM을 사용하여 페르소나의 테스트 응답을 생성"""
+    """LLM을 사용하여 페스트 응답을 생성"""
     try:
         # 질문 목록 준비
         if test_type == 'IPIP':
@@ -167,11 +176,18 @@ def get_llm_response(persona, questions, test_type):
 4 = Agree a little
 5 = Agree strongly"""
         
-        # 프롬프트 구성
-        prompt = f"""Based on this persona: {', '.join(persona['personality'])}
+        # 프롬프트 구성 - 테스트 모드에 따라 다르게
+        if test_mode == "페르소나 테스트":
+            prompt = f"""Based on this persona: {', '.join(persona['personality'])}
 
 For each question, provide a rating from 1-5 where:
-{scale_description}
+{scale_description}"""
+        else:  # 대조군 테스트
+            prompt = f"""As an AI, please answer these personality test questions honestly.
+Rate each question from 1-5 where:
+{scale_description}"""
+
+        prompt += f"""
 
 Return ONLY a JSON object in this exact format:
 {{
@@ -324,8 +340,13 @@ if st.button("테스트 초기화"):
 
 def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
     ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
-    batch_personas = personas[start_idx:end_idx]
     
+    if test_mode == "페르소나 테스트":
+        batch_personas = personas[start_idx:end_idx]
+    else:  # 대조군 테스트
+        # 대조군 테스트를 위한 더미 페르소나 생성
+        batch_personas = [{"personality": ["AI Baseline Test"]} for _ in range(end_idx - start_idx)]
+
     # DataFrame 초기화 또는 기존 결과 불러오기
     if st.session_state.accumulated_results['ipip'].empty:
         ipip_df = pd.DataFrame(
