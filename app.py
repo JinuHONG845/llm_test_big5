@@ -392,9 +392,14 @@ if test_mode == "전체 테스트 (분할 실행)":
         }
         st.rerun()
 
-def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
+def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP', is_control=False):
+    # 대조군 테스트일 경우 빈 페르소나 사용
+    if is_control:
+        personas_to_test = [{"personality": []}]  # 빈 페르소나
+    else:
+        personas_to_test = personas[start_idx:end_idx]  # 기존 페르소나
+    
     ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
-    batch_personas = personas[start_idx:end_idx]
     
     # DataFrame 초기화 또는 기존 결과 불러오기
     if st.session_state.accumulated_results['ipip'].empty:
@@ -422,7 +427,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         result_table = st.empty()
         
         # IPIP 테스트 실행
-        for i, persona in enumerate(batch_personas, start=start_idx):
+        for i, persona in enumerate(personas_to_test, start=start_idx):
             # IPIP 테스트
             all_ipip_scores = []
             for j in range(0, 300, ipip_batch_size):
@@ -441,7 +446,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                         ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
                         
                         # 진행 상황 업데이트 (1.0을 초과하지 않도록 수정)
-                        progress = min(1.0, ((i - start_idx) * 300 + j + len(scores)) / (len(batch_personas) * 300))
+                        progress = min(1.0, ((i - start_idx) * 300 + j + len(scores)) / (len(personas_to_test) * 300))
                         progress_bar.progress(progress)
                         
                         # DataFrame 업데이트
@@ -485,7 +490,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         result_table = st.empty()
         
         # BFI 테스트 실행
-        for i, persona in enumerate(batch_personas, start=start_idx):
+        for i, persona in enumerate(personas_to_test, start=start_idx):
             # BFI 테스트 (유사한 방식으로 구현)
             for j in range(0, 44, bfi_batch_size):
                 try:
@@ -502,7 +507,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                         bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                         
                         # 진행 상황 업데이트 (1.0을 초과하지 않도록 수정)
-                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(batch_personas) * 44))
+                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(personas_to_test) * 44))
                         progress_bar.progress(progress)
                         
                         # DataFrame 업데이트
@@ -648,52 +653,54 @@ def run_control_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
     return df
 
 # 메인 UI에서 대조군 테스트 버튼 처리
-if is_control_group:
-    if control_test_type in ["IPIP", "모두"]:
-        st.write("### IPIP 대조군 테스트")
-        col1, col2, col3, col4, col5 = st.columns(5)
-        
-        with col1:
-            if st.button("IPIP 1-10"):
-                run_control_batch_test('ipip_1', 0, 10, 'IPIP')
-        with col2:
-            if st.button("IPIP 11-20"):
-                run_control_batch_test('ipip_2', 10, 20, 'IPIP')
-        with col3:
-            if st.button("IPIP 21-30"):
-                run_control_batch_test('ipip_3', 20, 30, 'IPIP')
-        with col4:
-            if st.button("IPIP 31-40"):
-                run_control_batch_test('ipip_4', 30, 40, 'IPIP')
-        with col5:
-            if st.button("IPIP 41-50"):
-                run_control_batch_test('ipip_5', 40, 50, 'IPIP')
+if test_mode == "대조군 테스트":
+    st.write("### IPIP 대조군 테스트")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        if st.button("IPIP 1-10", key="control_ipip_1"):
+            run_batch_test('ipip_1', 0, 10, 'IPIP', is_control=True)
+    with col2:
+        if st.button("IPIP 11-20", key="control_ipip_2"):
+            run_batch_test('ipip_2', 10, 20, 'IPIP', is_control=True)
+    with col3:
+        if st.button("IPIP 21-30", key="control_ipip_3"):
+            run_batch_test('ipip_3', 20, 30, 'IPIP', is_control=True)
+    with col4:
+        if st.button("IPIP 31-40", key="control_ipip_4"):
+            run_batch_test('ipip_4', 30, 40, 'IPIP', is_control=True)
+    with col5:
+        if st.button("IPIP 41-50", key="control_ipip_5"):
+            run_batch_test('ipip_5', 40, 50, 'IPIP', is_control=True)
 
-    if control_test_type in ["BFI", "모두"]:
-        st.write("### BFI 대조군 테스트")
-        col1, col2, col3, col4, col5 = st.columns(5)
-        
-        with col1:
-            if st.button("BFI 1-10"):
-                run_control_batch_test('bfi_1', 0, 10, 'BFI')
-        with col2:
-            if st.button("BFI 11-20"):
-                run_control_batch_test('bfi_2', 10, 20, 'BFI')
-        with col3:
-            if st.button("BFI 21-30"):
-                run_control_batch_test('bfi_3', 20, 30, 'BFI')
-        with col4:
-            if st.button("BFI 31-40"):
-                run_control_batch_test('bfi_4', 30, 40, 'BFI')
-        with col5:
-            if st.button("BFI 41-50"):
-                run_control_batch_test('bfi_5', 40, 50, 'BFI')
+    st.write("### BFI 대조군 테스트")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        if st.button("BFI 1-10", key="control_bfi_1"):
+            run_batch_test('bfi_1', 0, 10, 'BFI', is_control=True)
+    with col2:
+        if st.button("BFI 11-20", key="control_bfi_2"):
+            run_batch_test('bfi_2', 10, 20, 'BFI', is_control=True)
+    with col3:
+        if st.button("BFI 21-30", key="control_bfi_3"):
+            run_batch_test('bfi_3', 20, 30, 'BFI', is_control=True)
+    with col4:
+        if st.button("BFI 31-40", key="control_bfi_4"):
+            run_batch_test('bfi_4', 30, 40, 'BFI', is_control=True)
+    with col5:
+        if st.button("BFI 41-50", key="control_bfi_5"):
+            run_batch_test('bfi_5', 40, 50, 'BFI', is_control=True)
 
     # 초기화 버튼
-    if st.button("대조군 테스트 초기화"):
+    if st.button("대조군 테스트 초기화", key="control_reset"):
         st.session_state.control_results = {
             'ipip': pd.DataFrame(),
             'bfi': pd.DataFrame(),
             'completed_batches': set()
         }
         st.rerun()
+
+elif test_mode == "페르소나 테스트":
+    # 기존의 페르소나 테스트 로직 유지
+    # ... (기존 코드) ...
