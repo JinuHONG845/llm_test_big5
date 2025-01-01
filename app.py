@@ -181,25 +181,22 @@ def get_llm_response(persona, questions, test_type):
             prompt = f"""Based on this persona: {', '.join(persona['personality'])}
 
 For each question, provide a rating from 1-5 where:
-{scale_description}"""
-        else:  # 대조군 테스트
-            prompt = f"""As an AI, please answer these personality test questions honestly.
-Rate each question from 1-5 where:
-{scale_description}"""
+{scale_description}
 
-        prompt += f"""
-
-Return ONLY a JSON object in this exact format:
-{{
-    "responses": [
-        {{"question": "<question text>", "score": <1-5>}},
-        ...
-    ]
-}}
+Return ONLY comma-separated numbers (e.g., 4,2,5,1,3). No other text or explanation.
 
 Questions to rate:
 {json.dumps(question_list, indent=2)}"""
-        
+        else:  # 대조군 테스트
+            prompt = f"""As an AI, please answer these personality test questions honestly.
+Rate each question from 1-5 where:
+{scale_description}
+
+Return ONLY comma-separated numbers (e.g., 4,2,5,1,3). No other text or explanation.
+
+Questions to rate:
+{json.dumps(question_list, indent=2)}"""
+
         max_retries = 3
         for attempt in range(max_retries):
             try:
@@ -240,12 +237,21 @@ Questions to rate:
                     content = response.text
                 
                 # JSON 파싱 및 검증
+                content = content.strip()
                 if content.startswith('```') and content.endswith('```'):
                     content = content.split('```')[1]
                     if content.startswith('json'):
                         content = content[4:]
                 
-                result = json.loads(content.strip())
+                # 숫자만 추출
+                scores = [int(x.strip()) for x in content.split(',')]
+                
+                # 기존 형식으로 변환
+                result = {
+                    "responses": [
+                        {"question": q, "score": s} for q, s in zip(question_list, scores)
+                    ]
+                }
                 
                 # 응답 검증
                 if not result or 'responses' not in result:
