@@ -86,79 +86,96 @@ except json.JSONDecodeError as e:
 
 # 사이드바 설정
 with st.sidebar:
-    # === LLM 설정 섹션 ===
-    st.title("LLM 설정")
-    llm_choice = st.radio(
-        "LLM 선택",
-        ("GPT", "Claude", "Gemini"),
-        horizontal=True,
-        key="main_llm"  # 고유 키 추가
+    # 실험 모드 선택
+    test_mode = st.radio(
+        "실험 모드 선택",
+        ("LLM 테스트", "대조군 테스트"),
+        horizontal=True
     )
-
-    # LLM 선택에 따른 세부 모델 선택
-    if llm_choice == "GPT":
-        model_choice = st.radio(
-            "GPT 모델 선택",
-            ("GPT-4 Turbo", "GPT-3.5 Turbo"),
-            horizontal=True,
-            help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다.",
-            key="main_model_gpt"
-        )
-    elif llm_choice == "Claude":
-        model_choice = st.radio(
-            "Claude 모델 선택",
-            ("Claude 3 Sonnet", "Claude 3 Haiku"),
-            horizontal=True,
-            help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다.",
-            key="main_model_claude"
-        )
-    else:  # Gemini
-        model_choice = st.radio(
-            "Gemini 모델 선택",
-            ("Gemini Pro",),  # 단일 옵션
-            horizontal=True,
-            help="현재 Gemini Pro 모델만 사용 가능합니다.",
-            key="main_model_gemini"
-        )
     
     st.divider()  # 구분선 추가
 
-    # === 대조군 설정 섹션 ===
-    st.title("대조군 설정")
-    
-    # 대조군 LLM 선택
-    control_llm_choice = st.radio(
-        "LLM 선택",
-        ("GPT", "Claude", "Gemini"),
-        horizontal=True,
-        key="control_llm"  # 고유 키 추가
-    )
+    if test_mode == "LLM 테스트":
+        # === LLM 설정 섹션 ===
+        st.title("LLM 설정")
+        llm_choice = st.radio(
+            "LLM 선택",
+            ("GPT", "Claude", "Gemini"),
+            horizontal=True,
+            key="main_llm"
+        )
 
-    # 대조군 세부 모델 선택
-    if control_llm_choice == "GPT":
-        control_model_choice = st.radio(
-            "GPT 모델 선택",
-            ("GPT-4 Turbo", "GPT-3.5 Turbo"),
+        # LLM 선택에 따른 세부 모델 선택
+        if llm_choice == "GPT":
+            model_choice = st.radio(
+                "GPT 모델 선택",
+                ("GPT-4 Turbo", "GPT-3.5 Turbo"),
+                horizontal=True,
+                help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다.",
+                key="main_model_gpt"
+            )
+        elif llm_choice == "Claude":
+            model_choice = st.radio(
+                "Claude 모델 선택",
+                ("Claude 3 Sonnet", "Claude 3 Haiku"),
+                horizontal=True,
+                help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다.",
+                key="main_model_claude"
+            )
+        else:  # Gemini
+            model_choice = st.radio(
+                "Gemini 모델 선택",
+                ("Gemini Pro",),  # 단일 옵션
+                horizontal=True,
+                help="현재 Gemini Pro 모델만 사용 가능합니다.",
+                key="main_model_gemini"
+            )
+        
+        # 대조군 변수 초기화
+        control_llm_choice = None
+        control_model_choice = None
+
+    else:  # 대조군 테스트
+        # === 대조군 설정 섹션 ===
+        st.title("대조군 설정")
+        
+        # 대조군 LLM 선택
+        control_llm_choice = st.radio(
+            "LLM 선택",
+            ("GPT", "Claude", "Gemini"),
             horizontal=True,
-            help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다.",
-            key="control_model_gpt"
+            key="control_llm"
         )
-    elif control_llm_choice == "Claude":
-        control_model_choice = st.radio(
-            "Claude 모델 선택",
-            ("Claude 3 Sonnet", "Claude 3 Haiku"),
-            horizontal=True,
-            help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다.",
-            key="control_model_claude"
-        )
-    else:  # Gemini
-        control_model_choice = st.radio(
-            "Gemini 모델 선택",
-            ("Gemini Pro",),  # 단일 옵션
-            horizontal=True,
-            help="현재 Gemini Pro 모델만 사용 가능합니다.",
-            key="control_model_gemini"
-        )
+
+        # 대조군 세부 모델 선택
+        if control_llm_choice == "GPT":
+            control_model_choice = st.radio(
+                "GPT 모델 선택",
+                ("GPT-4 Turbo", "GPT-3.5 Turbo"),
+                horizontal=True,
+                help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다.",
+                key="control_model_gpt"
+            )
+        elif control_llm_choice == "Claude":
+            control_model_choice = st.radio(
+                "Claude 모델 선택",
+                ("Claude 3 Sonnet", "Claude 3 Haiku"),
+                horizontal=True,
+                help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다.",
+                key="control_model_claude"
+            )
+        else:  # Gemini
+            control_model_choice = st.radio(
+                "Gemini 모델 선택",
+                ("Gemini Pro",),  # 단일 옵션
+                horizontal=True,
+                help="현재 Gemini Pro 모델만 사용 가능합니다.",
+                key="control_model_gemini"
+            )
+        
+        # LLM 변수 초기화
+        llm_choice = None
+        model_choice = None
 
 # 세션 상태 초기화 (기존 코드에 추가)
 if 'control_results' not in st.session_state:
