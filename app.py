@@ -702,5 +702,40 @@ if test_mode == "대조군 테스트":
         st.rerun()
 
 elif test_mode == "페르소나 테스트":
-    # 기존의 페르소나 테스트 로직 유지
-    # ... (기존 코드) ...
+    st.write("### IPIP 페르소나 테스트")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        if st.button("IPIP 1-10", key="persona_ipip_1"):
+            run_batch_test('ipip_1', 0, 10, 'IPIP', is_control=False)
+    with col2:
+        if st.button("IPIP 11-20", key="persona_ipip_2"):
+            run_batch_test('ipip_2', 10, 20, 'IPIP', is_control=False)
+    with col3:
+        if st.button("IPIP 21-30", key="persona_ipip_3"):
+            run_batch_test('ipip_3', 20, 30, 'IPIP', is_control=False)
+    with col4:
+        if st.button("IPIP 31-40", key="persona_ipip_4"):
+            run_batch_test('ipip_4', 30, 40, 'IPIP', is_control=False)
+    with col5:
+        if st.button("IPIP 41-50", key="persona_ipip_5"):
+            run_batch_test('ipip_5', 40, 50, 'IPIP', is_control=False)
+
+    st.write("### BFI 페르소나 테스트")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        if st.button("BFI 1-10", key="persona_bfi_1"):
+            run_batch_test('bfi_1', 0, 10, 'BFI', is_control=False)
+    with col2:
+        if st.button("BFI 11-20", key="persona_bfi_2"):
+            run_batch_test('bfi_2', 10, 20, 'BFI', is_control=False)
+    with col3:
+        if st.button("BFI 21-30", key="persona_bfi_3"):
+            run_batch_test('bfi_3', 20, 30, 'BFI', is_control=False)
+    with col4:
+        if st.button("BFI 31-40", key="persona_bfi_4"):
+            run_batch_test('bfi_4', 30, 40, 'BFI', is_control=False)
+    with col5:
+        if st.button("BFI 41-50", key="persona_bfi_5"):
+            run_batch_test('bfi_5', 40, 50, 'BFI', is_control=False)
