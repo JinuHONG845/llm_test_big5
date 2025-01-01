@@ -478,28 +478,27 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
 
     return ipip_df, bfi_df
 
-# 배치 버튼 클릭 처리
-if test_mode == "전체 테스트 (분할 실행)":
-    if ipip_batch1:
-        ipip_df, _ = run_batch_test('ipip_batch1', 0, 10, test_type='IPIP')
-    elif ipip_batch2:
-        ipip_df, _ = run_batch_test('ipip_batch2', 10, 20, test_type='IPIP')
-    elif ipip_batch3:
-        ipip_df, _ = run_batch_test('ipip_batch3', 20, 30, test_type='IPIP')
-    elif ipip_batch4:
-        ipip_df, _ = run_batch_test('ipip_batch4', 30, 40, test_type='IPIP')
-    elif ipip_batch5:
-        ipip_df, _ = run_batch_test('ipip_batch5', 40, 50, test_type='IPIP')
-    elif bfi_batch1:
-        _, bfi_df = run_batch_test('bfi_batch1', 0, 10, test_type='BFI')
-    elif bfi_batch2:
-        _, bfi_df = run_batch_test('bfi_batch2', 10, 20, test_type='BFI')
-    elif bfi_batch3:
-        _, bfi_df = run_batch_test('bfi_batch3', 20, 30, test_type='BFI')
-    elif bfi_batch4:
-        _, bfi_df = run_batch_test('bfi_batch4', 30, 40, test_type='BFI')
-    elif bfi_batch5:
-        _, bfi_df = run_batch_test('bfi_batch5', 40, 50, test_type='BFI')
+# 배치 버튼 클릭 처리 (test_mode 조건 제거)
+if ipip_batch1:
+    ipip_df, _ = run_batch_test('ipip_batch1', 0, 10, test_type='IPIP')
+elif ipip_batch2:
+    ipip_df, _ = run_batch_test('ipip_batch2', 10, 20, test_type='IPIP')
+elif ipip_batch3:
+    ipip_df, _ = run_batch_test('ipip_batch3', 20, 30, test_type='IPIP')
+elif ipip_batch4:
+    ipip_df, _ = run_batch_test('ipip_batch4', 30, 40, test_type='IPIP')
+elif ipip_batch5:
+    ipip_df, _ = run_batch_test('ipip_batch5', 40, 50, test_type='IPIP')
+elif bfi_batch1:
+    _, bfi_df = run_batch_test('bfi_batch1', 0, 10, test_type='BFI')
+elif bfi_batch2:
+    _, bfi_df = run_batch_test('bfi_batch2', 10, 20, test_type='BFI')
+elif bfi_batch3:
+    _, bfi_df = run_batch_test('bfi_batch3', 20, 30, test_type='BFI')
+elif bfi_batch4:
+    _, bfi_df = run_batch_test('bfi_batch4', 30, 40, test_type='BFI')
+elif bfi_batch5:
+    _, bfi_df = run_batch_test('bfi_batch5', 40, 50, test_type='BFI')
 
 # CSV 파일 생성 및 다운로드 부분
 if not st.session_state.accumulated_results['ipip'].empty:
