@@ -84,17 +84,15 @@ except json.JSONDecodeError as e:
     st.error(f"JSON 파일 파싱 오류: {str(e)}")
     st.stop()
 
-# LLM 선택 및 설정
-col1, col2 = st.columns([1, 2])
-
-with col1:
+# LLM 선택 및 설정 부분을 사이드바로 이동
+with st.sidebar:
+    st.title("LLM 설정")
     llm_choice = st.radio(
         "LLM 선택",
         ("GPT", "Claude", "Gemini"),
         horizontal=True
     )
 
-with col2:
     # LLM 선택에 따른 세부 모델 선택
     if llm_choice == "GPT":
         model_choice = st.radio(
