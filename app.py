@@ -84,101 +84,41 @@ except json.JSONDecodeError as e:
     st.error(f"JSON 파일 파싱 오류: {str(e)}")
     st.stop()
 
-# 사이드바 설정
+# LLM 선택 및 설정 부분을 사이드바로 이동
 with st.sidebar:
-    # 실험 모드 선택
-    test_mode = st.radio(
-        "실험 모드 선택",
-        ("페르소나 테스트", "대조군 테스트"),
+    st.title("LLM 설정")
+    llm_choice = st.radio(
+        "LLM 선택",
+        ("GPT", "Claude", "Gemini"),
         horizontal=True
     )
-    
-    st.divider()  # 구분선 추가
 
-    if test_mode == "페르소나 테스트":
-        # === LLM 설정 섹션 ===
-        st.title("LLM 설정")
-        llm_choice = st.radio(
-            "LLM 선택",
-            ("GPT", "Claude", "Gemini"),
+    # LLM 선택에 따른 세부 모델 선택
+    if llm_choice == "GPT":
+        model_choice = st.radio(
+            "GPT 모델 선택",
+            ("GPT-4 Turbo", "GPT-3.5 Turbo"),
             horizontal=True,
-            key="main_llm"
+            help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다."
+        )
+    elif llm_choice == "Claude":
+        model_choice = st.radio(
+            "Claude 모델 선택",
+            ("Claude 3 Sonnet", "Claude 3 Haiku"),
+            horizontal=True,
+            help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다."
+        )
+    else:  # Gemini
+        model_choice = st.radio(
+            "Gemini 모델 선택",
+            ("Gemini Pro",),  # 단일 옵션
+            horizontal=True,
+            help="현재 Gemini Pro 모델만 사용 가능합니다."
         )
 
-        # LLM 선택에 따른 세부 모델 선택
-        if llm_choice == "GPT":
-            model_choice = st.radio(
-                "GPT 모델 선택",
-                ("GPT-4 Turbo", "GPT-3.5 Turbo"),
-                horizontal=True,
-                help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다.",
-                key="main_model_gpt"
-            )
-        elif llm_choice == "Claude":
-            model_choice = st.radio(
-                "Claude 모델 선택",
-                ("Claude 3 Sonnet", "Claude 3 Haiku"),
-                horizontal=True,
-                help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다.",
-                key="main_model_claude"
-            )
-        else:  # Gemini
-            model_choice = "gemini-pro"  # Gemini Pro 모델로 고정
-            st.info("Gemini Pro 모델이 사용됩니다.")
-        
-        # 대조군 변수 초기화
-        control_llm_choice = None
-        control_model_choice = None
-
-    else:  # 대조군 테스트
-        # === 대조군 LLM 설정 ===
-        st.title("대조군 LLM 설정")
-        
-        # 대조군 LLM 선택
-        control_llm_choice = st.radio(
-            "LLM 선택",
-            ("GPT", "Claude", "Gemini"),
-            horizontal=True,
-            key="control_llm"
-        )
-
-        # 대조군 세부 모델 선택
-        if control_llm_choice == "GPT":
-            control_model_choice = st.radio(
-                "GPT 모델 선택",
-                ("GPT-4 Turbo", "GPT-3.5 Turbo"),
-                horizontal=True,
-                help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다.",
-                key="control_model_gpt"
-            )
-        elif control_llm_choice == "Claude":
-            control_model_choice = st.radio(
-                "Claude 모델 선택",
-                ("Claude 3 Sonnet", "Claude 3 Haiku"),
-                horizontal=True,
-                help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다.",
-                key="control_model_claude"
-            )
-        else:  # Gemini
-            control_model_choice = st.radio(
-                "Gemini 모델 선택",
-                ("Gemini Pro",),  # 단일 옵션
-                horizontal=True,
-                help="현재 Gemini Pro 모델만 사용 가능합니다.",
-                key="control_model_gemini"
-            )
-        
-        # LLM 변수 초기화
-        llm_choice = None
-        model_choice = None
-
-# 세션 상태 초기화 (기존 코드에 추가)
-if 'control_results' not in st.session_state:
-    st.session_state.control_results = {
-        'ipip': pd.DataFrame(),
-        'bfi': pd.DataFrame(),
-        'completed_batches': set()
-    }
+def select_test_mode():
+    print("\n전체 테스트를 시작합니다.")
+    return "전체 테스트 (분할 실행)"  # 문자열 값을 정확히 맞춤
 
 # API 키 설정
 if llm_choice == "GPT":
@@ -387,14 +327,9 @@ if test_mode == "전체 테스트 (분할 실행)":
         }
         st.rerun()
 
-def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP', is_control=False):
-    # 대조군 테스트일 경우 빈 페르소나 사용
-    if is_control:
-        personas_to_test = [{"personality": []}]  # 빈 페르소나
-    else:
-        personas_to_test = personas[start_idx:end_idx]  # 기존 페르소나
-    
+def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
     ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
+    batch_personas = personas[start_idx:end_idx]
     
     # DataFrame 초기화 또는 기존 결과 불러오기
     if st.session_state.accumulated_results['ipip'].empty:
@@ -422,7 +357,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP', is_control=
         result_table = st.empty()
         
         # IPIP 테스트 실행
-        for i, persona in enumerate(personas_to_test, start=start_idx):
+        for i, persona in enumerate(batch_personas, start=start_idx):
             # IPIP 테스트
             all_ipip_scores = []
             for j in range(0, 300, ipip_batch_size):
@@ -441,7 +376,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP', is_control=
                         ipip_df.loc['Average'] = ipip_df.iloc[:-1].mean()
                         
                         # 진행 상황 업데이트 (1.0을 초과하지 않도록 수정)
-                        progress = min(1.0, ((i - start_idx) * 300 + j + len(scores)) / (len(personas_to_test) * 300))
+                        progress = min(1.0, ((i - start_idx) * 300 + j + len(scores)) / (len(batch_personas) * 300))
                         progress_bar.progress(progress)
                         
                         # DataFrame 업데이트
@@ -485,7 +420,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP', is_control=
         result_table = st.empty()
         
         # BFI 테스트 실행
-        for i, persona in enumerate(personas_to_test, start=start_idx):
+        for i, persona in enumerate(batch_personas, start=start_idx):
             # BFI 테스트 (유사한 방식으로 구현)
             for j in range(0, 44, bfi_batch_size):
                 try:
@@ -502,7 +437,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP', is_control=
                         bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                         
                         # 진행 상황 업데이트 (1.0을 초과하지 않도록 수정)
-                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(personas_to_test) * 44))
+                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(batch_personas) * 44))
                         progress_bar.progress(progress)
                         
                         # DataFrame 업데이트
@@ -588,149 +523,3 @@ if not st.session_state.accumulated_results['ipip'].empty:
         file_name="personality_test_results.csv",
         mime="text/csv"
     )
-
-# 대조군 테스트 실행 함수 수정
-def run_control_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
-    empty_persona = {"personality": []}  # 빈 페르소나
-    
-    # DataFrame 초기화 또는 기존 결과 불러오기
-    if st.session_state.control_results[test_type.lower()].empty:
-        df = pd.DataFrame(
-            np.nan,
-            index=[f"Control {i+1}" for i in range(num_control_tests)] + ['Average'],
-            columns=[f"Q{i+1}" for i in range(300 if test_type == 'IPIP' else 44)]
-        )
-    else:
-        df = st.session_state.control_results[test_type.lower()].copy()
-
-    # 진행 상황 표시
-    st.write(f"### {test_type} 대조군 테스트 진행 상황")
-    progress_bar = st.progress(0)
-    result_table = st.empty()
-
-    # 각 대조군 테스트 실행
-    for test_num in range(num_control_tests):
-        try:
-            responses = get_llm_response(empty_persona, 
-                                       ipip_questions['items'][start_idx:end_idx] if test_type == 'IPIP' else bfi_questions[start_idx:end_idx], 
-                                       test_type)
-            
-            if responses and 'responses' in responses:
-                scores = [r['score'] for r in responses['responses']]
-                df.iloc[test_num, start_idx:end_idx] = scores
-                df.loc['Average'] = df.iloc[:-1].mean()
-
-                # 진행 상황 업데이트
-                progress = (test_num + 1) / num_control_tests
-                progress_bar.progress(progress)
-
-                # 결과 테이블 업데이트
-                result_table.dataframe(
-                    df.fillna(0).round().astype(int).style
-                        .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                        .format("{:d}")
-                        .set_properties(**{
-                            'width': '40px',
-                            'text-align': 'center',
-                            'font-size': '13px',
-                            'border': '1px solid #e6e6e6'
-                        })
-                )
-
-        except Exception as e:
-            st.error(f"대조군 테스트 {test_num+1} 실패: {str(e)}")
-            continue
-
-    # 결과 저장
-    st.session_state.control_results[test_type.lower()] = df
-    st.session_state.control_results['completed_batches'].add(batch_name)
-
-    return df
-
-# 메인 UI에서 대조군 테스트 버튼 처리
-if test_mode == "대조군 테스트":
-    st.write("### IPIP 대조군 테스트")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        if st.button("IPIP 1-10", key="control_ipip_1"):
-            run_batch_test('ipip_1', 0, 10, 'IPIP', is_control=True)
-    with col2:
-        if st.button("IPIP 11-20", key="control_ipip_2"):
-            run_batch_test('ipip_2', 10, 20, 'IPIP', is_control=True)
-    with col3:
-        if st.button("IPIP 21-30", key="control_ipip_3"):
-            run_batch_test('ipip_3', 20, 30, 'IPIP', is_control=True)
-    with col4:
-        if st.button("IPIP 31-40", key="control_ipip_4"):
-            run_batch_test('ipip_4', 30, 40, 'IPIP', is_control=True)
-    with col5:
-        if st.button("IPIP 41-50", key="control_ipip_5"):
-            run_batch_test('ipip_5', 40, 50, 'IPIP', is_control=True)
-
-    st.write("### BFI 대조군 테스트")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        if st.button("BFI 1-10", key="control_bfi_1"):
-            run_batch_test('bfi_1', 0, 10, 'BFI', is_control=True)
-    with col2:
-        if st.button("BFI 11-20", key="control_bfi_2"):
-            run_batch_test('bfi_2', 10, 20, 'BFI', is_control=True)
-    with col3:
-        if st.button("BFI 21-30", key="control_bfi_3"):
-            run_batch_test('bfi_3', 20, 30, 'BFI', is_control=True)
-    with col4:
-        if st.button("BFI 31-40", key="control_bfi_4"):
-            run_batch_test('bfi_4', 30, 40, 'BFI', is_control=True)
-    with col5:
-        if st.button("BFI 41-50", key="control_bfi_5"):
-            run_batch_test('bfi_5', 40, 50, 'BFI', is_control=True)
-
-    # 초기화 버튼
-    if st.button("대조군 테스트 초기화", key="control_reset"):
-        st.session_state.control_results = {
-            'ipip': pd.DataFrame(),
-            'bfi': pd.DataFrame(),
-            'completed_batches': set()
-        }
-        st.rerun()
-
-elif test_mode == "페르소나 테스트":
-    st.write("### IPIP 페르소나 테스트")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        if st.button("IPIP 1-10", key="persona_ipip_1"):
-            run_batch_test('ipip_1', 0, 10, 'IPIP', is_control=False)
-    with col2:
-        if st.button("IPIP 11-20", key="persona_ipip_2"):
-            run_batch_test('ipip_2', 10, 20, 'IPIP', is_control=False)
-    with col3:
-        if st.button("IPIP 21-30", key="persona_ipip_3"):
-            run_batch_test('ipip_3', 20, 30, 'IPIP', is_control=False)
-    with col4:
-        if st.button("IPIP 31-40", key="persona_ipip_4"):
-            run_batch_test('ipip_4', 30, 40, 'IPIP', is_control=False)
-    with col5:
-        if st.button("IPIP 41-50", key="persona_ipip_5"):
-            run_batch_test('ipip_5', 40, 50, 'IPIP', is_control=False)
-
-    st.write("### BFI 페르소나 테스트")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        if st.button("BFI 1-10", key="persona_bfi_1"):
-            run_batch_test('bfi_1', 0, 10, 'BFI', is_control=False)
-    with col2:
-        if st.button("BFI 11-20", key="persona_bfi_2"):
-            run_batch_test('bfi_2', 10, 20, 'BFI', is_control=False)
-    with col3:
-        if st.button("BFI 21-30", key="persona_bfi_3"):
-            run_batch_test('bfi_3', 20, 30, 'BFI', is_control=False)
-    with col4:
-        if st.button("BFI 31-40", key="persona_bfi_4"):
-            run_batch_test('bfi_4', 30, 40, 'BFI', is_control=False)
-    with col5:
-        if st.button("BFI 41-50", key="persona_bfi_5"):
-            run_batch_test('bfi_5', 40, 50, 'BFI', is_control=False)
