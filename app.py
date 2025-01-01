@@ -84,8 +84,9 @@ except json.JSONDecodeError as e:
     st.error(f"JSON 파일 파싱 오류: {str(e)}")
     st.stop()
 
-# LLM 선택 및 설정 부분을 사이드바로 이동
+# 사이드바 설정
 with st.sidebar:
+    # LLM 설정 섹션
     st.title("LLM 설정")
     llm_choice = st.radio(
         "LLM 선택",
@@ -121,22 +122,37 @@ with st.sidebar:
     # 대조군 설정 섹션
     st.title("대조군 설정")
     is_control_group = st.checkbox("대조군 테스트 실행", 
-                                 help="페르소나 없이 IPIP와 BFI 테스트를 실행합니다.")
+                                 help="페르소나 없이 테스트를 실행합니다.")
     
     if is_control_group:
-        control_test_type = st.radio(
-            "대조군 테스트 유형",
-            ("IPIP", "BFI", "모두"),
+        control_llm_choice = st.radio(
+            "대조군 LLM 선택",
+            ("GPT", "Claude", "Gemini"),
             horizontal=True
         )
-        
-        num_control_tests = st.number_input(
-            "테스트 반복 횟수",
-            min_value=1,
-            max_value=10,
-            value=3,
-            help="대조군 테스트를 몇 번 반복할지 설정합니다."
-        )
+
+        # 대조군 LLM 선택에 따른 세부 모델 선택
+        if control_llm_choice == "GPT":
+            control_model_choice = st.radio(
+                "대조군 GPT 모델 선택",
+                ("GPT-4 Turbo", "GPT-3.5 Turbo"),
+                horizontal=True,
+                help="GPT-4 Turbo는 더 정확하지만 느립니다. GPT-3.5 Turbo는 더 빠르지만 정확도가 낮을 수 있습니다."
+            )
+        elif control_llm_choice == "Claude":
+            control_model_choice = st.radio(
+                "대조군 Claude 모델 선택",
+                ("Claude 3 Sonnet", "Claude 3 Haiku"),
+                horizontal=True,
+                help="Sonnet은 더 정확하지만 느립니다. Haiku는 더 빠르지만 정확도가 낮을 수 있습니다."
+            )
+        else:  # Gemini
+            control_model_choice = st.radio(
+                "대조군 Gemini 모델 선택",
+                ("Gemini Pro",),  # 단일 옵션
+                horizontal=True,
+                help="현재 Gemini Pro 모델만 사용 가능합니다."
+            )
 
 # 세션 상태 초기화 (기존 코드에 추가)
 if 'control_results' not in st.session_state:
