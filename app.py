@@ -138,9 +138,13 @@ with st.sidebar:
             help="대조군 테스트를 몇 번 반복할지 설정합니다."
         )
 
-def select_test_mode():
-    print("\n전체 테스트를 시작합니다.")
-    return "전체 테스트 (분할 실행)"  # 문자열 값을 정확히 맞춤
+# 세션 상태 초기화 (기존 코드에 추가)
+if 'control_results' not in st.session_state:
+    st.session_state.control_results = {
+        'ipip': pd.DataFrame(),
+        'bfi': pd.DataFrame(),
+        'completed_batches': set()
+    }
 
 # API 키 설정
 if llm_choice == "GPT":
@@ -546,31 +550,111 @@ if not st.session_state.accumulated_results['ipip'].empty:
         mime="text/csv"
     )
 
-# 테스트 실행 부분 (기존 코드 아래에 추가)
-if is_control_group:
-    st.write("### 대조군 테스트 실행")
+# 대조군 테스트 실행 함수 수정
+def run_control_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
+    empty_persona = {"personality": []}  # 빈 페르소나
+    
+    # DataFrame 초기화 또는 기존 결과 불러오기
+    if st.session_state.control_results[test_type.lower()].empty:
+        df = pd.DataFrame(
+            np.nan,
+            index=[f"Control {i+1}" for i in range(num_control_tests)] + ['Average'],
+            columns=[f"Q{i+1}" for i in range(300 if test_type == 'IPIP' else 44)]
+        )
+    else:
+        df = st.session_state.control_results[test_type.lower()].copy()
+
+    # 진행 상황 표시
+    st.write(f"### {test_type} 대조군 테스트 진행 상황")
     progress_bar = st.progress(0)
-    
+    result_table = st.empty()
+
+    # 각 대조군 테스트 실행
+    for test_num in range(num_control_tests):
+        try:
+            responses = get_llm_response(empty_persona, 
+                                       ipip_questions['items'][start_idx:end_idx] if test_type == 'IPIP' else bfi_questions[start_idx:end_idx], 
+                                       test_type)
+            
+            if responses and 'responses' in responses:
+                scores = [r['score'] for r in responses['responses']]
+                df.iloc[test_num, start_idx:end_idx] = scores
+                df.loc['Average'] = df.iloc[:-1].mean()
+
+                # 진행 상황 업데이트
+                progress = (test_num + 1) / num_control_tests
+                progress_bar.progress(progress)
+
+                # 결과 테이블 업데이트
+                result_table.dataframe(
+                    df.fillna(0).round().astype(int).style
+                        .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                        .format("{:d}")
+                        .set_properties(**{
+                            'width': '40px',
+                            'text-align': 'center',
+                            'font-size': '13px',
+                            'border': '1px solid #e6e6e6'
+                        })
+                )
+
+        except Exception as e:
+            st.error(f"대조군 테스트 {test_num+1} 실패: {str(e)}")
+            continue
+
+    # 결과 저장
+    st.session_state.control_results[test_type.lower()] = df
+    st.session_state.control_results['completed_batches'].add(batch_name)
+
+    return df
+
+# 메인 UI에서 대조군 테스트 버튼 처리
+if is_control_group:
     if control_test_type in ["IPIP", "모두"]:
-        st.write("#### IPIP 대조군 테스트")
-        for i in range(num_control_tests):
-            # IPIP 테스트 실행 (페르소나 없이)
-            empty_persona = {"personality": []}  # 빈 페르소나
-            try:
-                responses = get_llm_response(empty_persona, ipip_questions['items'][:10], 'IPIP')  # 예시로 10문항만
-                st.write(f"테스트 {i+1} 완료")
-                progress_bar.progress((i + 1) / num_control_tests)
-            except Exception as e:
-                st.error(f"IPIP 테스트 {i+1} 실패: {str(e)}")
-    
+        st.write("### IPIP 대조군 테스트")
+        col1, col2, col3, col4, col5 = st.columns(5)
+        
+        with col1:
+            if st.button("IPIP 1-10"):
+                run_control_batch_test('ipip_1', 0, 10, 'IPIP')
+        with col2:
+            if st.button("IPIP 11-20"):
+                run_control_batch_test('ipip_2', 10, 20, 'IPIP')
+        with col3:
+            if st.button("IPIP 21-30"):
+                run_control_batch_test('ipip_3', 20, 30, 'IPIP')
+        with col4:
+            if st.button("IPIP 31-40"):
+                run_control_batch_test('ipip_4', 30, 40, 'IPIP')
+        with col5:
+            if st.button("IPIP 41-50"):
+                run_control_batch_test('ipip_5', 40, 50, 'IPIP')
+
     if control_test_type in ["BFI", "모두"]:
-        st.write("#### BFI 대조군 테스트")
-        for i in range(num_control_tests):
-            # BFI 테스트 실행 (페르소나 없이)
-            empty_persona = {"personality": []}  # 빈 페르소나
-            try:
-                responses = get_llm_response(empty_persona, bfi_questions[:10], 'BFI')  # 예시로 10문항만
-                st.write(f"테스트 {i+1} 완료")
-                progress_bar.progress((i + 1) / num_control_tests)
-            except Exception as e:
-                st.error(f"BFI 테스트 {i+1} 실패: {str(e)}")
+        st.write("### BFI 대조군 테스트")
+        col1, col2, col3, col4, col5 = st.columns(5)
+        
+        with col1:
+            if st.button("BFI 1-10"):
+                run_control_batch_test('bfi_1', 0, 10, 'BFI')
+        with col2:
+            if st.button("BFI 11-20"):
+                run_control_batch_test('bfi_2', 10, 20, 'BFI')
+        with col3:
+            if st.button("BFI 21-30"):
+                run_control_batch_test('bfi_3', 20, 30, 'BFI')
+        with col4:
+            if st.button("BFI 31-40"):
+                run_control_batch_test('bfi_4', 30, 40, 'BFI')
+        with col5:
+            if st.button("BFI 41-50"):
+                run_control_batch_test('bfi_5', 40, 50, 'BFI')
+
+    # 초기화 버튼
+    if st.button("대조군 테스트 초기화"):
+        st.session_state.control_results = {
+            'ipip': pd.DataFrame(),
+            'bfi': pd.DataFrame(),
+            'completed_batches': set()
+        }
+        st.rerun()
