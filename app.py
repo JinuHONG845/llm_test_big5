@@ -277,9 +277,9 @@ Questions to rate:
 # 배치 크기 조정 (모델에 따라)
 def get_batch_size(model):
     if model in ["GPT-4 Turbo", "Claude 3 Sonnet", "Gemini Pro"]:
-        return 25, 5  # IPIP 배치 크기, BFI 배치 크기
+        return 25, 10  # IPIP 배치 크기, BFI 배치 크기 (5에서 10으로 증가)
     else:
-        return 10, 3  # 더 작은 배치 크기
+        return 15, 8  # 더 작은 모델용 배치 크기도 증가
 
 # 세션 상태 초기화
 if 'accumulated_results' not in st.session_state:
@@ -436,63 +436,63 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         progress_bar = st.progress(0)
         result_table = st.empty()
         
-        # BFI 테스트 실행
+        total_questions = 44
+        max_retries = 3
+        
         for i, persona in enumerate(batch_personas, start=start_idx):
             all_bfi_scores = []
-            # BFI 테스트 (0부터 44까지)
-            for j in range(0, 44, bfi_batch_size):
-                try:
-                    batch_end = min(j + bfi_batch_size, 44)
-                    batch_questions = bfi_questions[j:batch_end]
-                    
-                    bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
-                    if bfi_responses and 'responses' in bfi_responses:
-                        scores = [r['score'] for r in bfi_responses['responses']]
-                        all_bfi_scores.extend(scores)
+            current_question = 0
+            
+            while current_question < total_questions:
+                batch_end = min(current_question + bfi_batch_size, total_questions)
+                retry_count = 0
+                
+                while retry_count < max_retries:
+                    try:
+                        current_batch = bfi_questions[current_question:batch_end]
+                        bfi_responses = get_llm_response(persona, current_batch, 'BFI')
                         
-                        current_scores = bfi_df.iloc[i].copy()
-                        current_scores[j:j+len(scores)] = scores
-                        bfi_df.iloc[i] = current_scores
-                        bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
-                        
-                        # 진행 상황 업데이트
-                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(batch_personas) * 44))
-                        progress_bar.progress(progress)
-                        
-                        # DataFrame 업데이트
-                        result_table.dataframe(
-                            bfi_df.fillna(0).round().astype(int).style
-                                .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                .format("{:d}")
-                                .set_properties(**{
-                                    'width': '40px',
-                                    'text-align': 'center',
-                                    'font-size': '13px',
-                                    'border': '1px solid #e6e6e6'
-                                })
-                                .set_table_styles([
-                                    {'selector': 'th', 'props': [
-                                        ('background-color', '#f0f2f6'),
-                                        ('color', '#0e1117'),
-                                        ('font-weight', 'bold'),
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'td', 'props': [
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'table', 'props': [
-                                        ('width', '100%'),
-                                        ('margin', '0 auto')
-                                    ]}
-                                ]),
-                            use_container_width=True
-                        )
-                        
-                        time.sleep(1)
-                        
-                except Exception as e:
-                    st.error(f"BFI 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
-                    continue
+                        if bfi_responses and 'responses' in bfi_responses:
+                            scores = [r['score'] for r in bfi_responses['responses']]
+                            
+                            if len(scores) == len(current_batch):
+                                for idx, score in enumerate(scores):
+                                    col_name = f"Q{current_question+idx+1}"
+                                    bfi_df.at[f"{index_prefix} {i+1}", col_name] = score
+                                
+                                all_bfi_scores.extend(scores)
+                                bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
+                                
+                                progress = min(1.0, ((i - start_idx) * total_questions + len(all_bfi_scores)) / 
+                                            ((end_idx - start_idx) * total_questions))
+                                progress_bar.progress(progress)
+                                
+                                # DataFrame 업데이트 빈도 줄이기 (매 5문항마다)
+                                if len(all_bfi_scores) % 5 == 0:
+                                    result_table.dataframe(
+                                        bfi_df.fillna(0).round().astype(int).style
+                                            .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
+                                            .format("{:d}"),
+                                        use_container_width=True
+                                    )
+                                
+                                time.sleep(1)  # 대기 시간 2초에서 1초로 감소
+                                break
+                                
+                            else:
+                                raise ValueError("응답 수 불일치")
+                                
+                        else:
+                            raise ValueError("유효하지 않은 응답 형식")
+                            
+                    except Exception as e:
+                        retry_count += 1
+                        if retry_count == max_retries:
+                            st.error(f"문항 처리 실패: {current_question+1}-{batch_end}")
+                        time.sleep(retry_count)  # 지수 백오프 대신 선형 백오프 사용
+                        continue
+                
+                current_question = batch_end
 
     # 결과 누적 저장
     st.session_state.accumulated_results['ipip'] = ipip_df
