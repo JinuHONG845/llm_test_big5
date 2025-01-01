@@ -186,9 +186,10 @@ Questions: {json.dumps(questions)}
 
 Return only numbers in array format [n,n,n,...] where n is 1-5."""
 
+        # GPT
         if llm_choice == "GPT":
             model_name = "gpt-4-turbo-preview" if model_choice == "GPT-4 Turbo" else "gpt-3.5-turbo"
-            response = openai.chat.completions.create(
+            response = client.chat.completions.create(
                 model=model_name,
                 messages=[
                     {"role": "system", "content": "You are a scoring assistant. Return only number arrays where each number is 1-5."},
@@ -199,17 +200,38 @@ Return only numbers in array format [n,n,n,...] where n is 1-5."""
             )
             content = response.choices[0].message.content
             
-            # 응답을 단순 배열로 파싱
-            scores = json.loads(content.strip())
+        # Claude    
+        elif llm_choice == "Claude":
+            response = anthropic_client.messages.create(
+                model="claude-3-sonnet-20240229",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=1.0,
+                max_tokens=1000
+            )
+            content = response.content[0].text
             
-            # 기존 형식으로 변환
-            result = {
-                "responses": [
-                    {"question": q, "score": s} for q, s in zip(questions, scores)
-                ]
-            }
-            
-            return result
+        # Gemini
+        else:  # Gemini
+            model = genai.GenerativeModel('gemini-pro')
+            response = model.generate_content(prompt)
+            content = response.text
+
+        # 응답을 단순 배열로 파싱
+        scores = json.loads(content.strip())
+        
+        # 기존 형식으로 변환
+        result = {
+            "responses": [
+                {"question": q, "score": s} for q, s in zip(questions, scores)
+            ]
+        }
+        
+        return result
             
     except Exception as e:
         st.error(f"LLM API 오류: {str(e)}")
