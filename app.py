@@ -436,34 +436,29 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         result_table = st.empty()
         
         total_questions = 44
-        max_retries = 3  # 최대 재시도 횟수
+        max_retries = 3
         
         # BFI 테스트 실행
         for i, persona in enumerate(batch_personas, start=start_idx):
             all_bfi_scores = []
+            current_question = 0
             
-            # 각 페르소나/더미에 대해 전체 44개 문항 처리
-            j = 0
-            while j < total_questions:
-                batch_end = min(j + bfi_batch_size, total_questions)
+            while current_question < total_questions:
+                batch_end = min(current_question + bfi_batch_size, total_questions)
                 retry_count = 0
                 
                 while retry_count < max_retries:
                     try:
-                        batch_questions = bfi_questions[j:batch_end]
+                        current_batch = bfi_questions[current_question:batch_end]
+                        bfi_responses = get_llm_response(persona, current_batch, 'BFI')
                         
-                        st.write(f"처리 중: {index_prefix} {i+1}, 문항 {j+1}-{batch_end}")
-                        
-                        bfi_responses = get_llm_response(persona, batch_questions, 'BFI')
                         if bfi_responses and 'responses' in bfi_responses:
                             scores = [r['score'] for r in bfi_responses['responses']]
                             
-                            if len(scores) == len(batch_questions):  # 응답 수 확인
-                                st.write(f"배치 크기: {batch_end-j}, 응답 수: {len(scores)}")
-                                
+                            if len(scores) == len(current_batch):
                                 # 각 점수를 개별적으로 할당
                                 for idx, score in enumerate(scores):
-                                    col_name = f"Q{j+idx+1}"
+                                    col_name = f"Q{current_question+idx+1}"
                                     bfi_df.at[f"{index_prefix} {i+1}", col_name] = score
                                 
                                 all_bfi_scores.extend(scores)
@@ -488,7 +483,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                                 break  # 성공적으로 처리됨
                                 
                             else:
-                                raise ValueError(f"응답 수 불일치: 예상 {len(batch_questions)}, 실제 {len(scores)}")
+                                raise ValueError(f"응답 수 불일치: 예상 {len(current_batch)}, 실제 {len(scores)}")
                                 
                         else:
                             raise ValueError("유효하지 않은 응답 형식")
@@ -500,10 +495,10 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                         continue
                         
                 if retry_count == max_retries:
-                    st.error(f"최대 재시도 횟수 초과 - {index_prefix} {i+1}, 문항 {j+1}-{batch_end}")
+                    st.error(f"최대 재시도 횟수 초과 - {index_prefix} {i+1}, 문항 {current_question+1}-{batch_end}")
                     # 실패한 배치는 건너뛰고 다음으로 진행
                 
-                j = batch_end  # 다음 배치로 이동
+                current_question = batch_end  # 다음 배치로 이동
 
     # 결과 누적 저장
     st.session_state.accumulated_results['ipip'] = ipip_df
