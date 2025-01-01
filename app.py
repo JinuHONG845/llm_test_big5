@@ -314,19 +314,19 @@ st.write("### BFI 페르소나 배치 선택")
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    bfi_batch1 = st.button("BFI 1-10번", 
+    bfi_batch1 = st.button("BFI 1-9번", 
                       disabled='bfi_batch1' in st.session_state.accumulated_results['completed_batches'])
 with col2:
-    bfi_batch2 = st.button("BFI 11-20번", 
+    bfi_batch2 = st.button("BFI 10-18번", 
                       disabled='bfi_batch2' in st.session_state.accumulated_results['completed_batches'])
 with col3:
-    bfi_batch3 = st.button("BFI 21-30번", 
+    bfi_batch3 = st.button("BFI 19-27번", 
                       disabled='bfi_batch3' in st.session_state.accumulated_results['completed_batches'])
 with col4:
-    bfi_batch4 = st.button("BFI 31-40번", 
+    bfi_batch4 = st.button("BFI 28-36번", 
                       disabled='bfi_batch4' in st.session_state.accumulated_results['completed_batches'])
 with col5:
-    bfi_batch5 = st.button("BFI 41-50번", 
+    bfi_batch5 = st.button("BFI 37-44번", 
                       disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
 
 # 초기화 버튼
@@ -513,15 +513,15 @@ elif ipip_batch4:
 elif ipip_batch5:
     ipip_df, _ = run_batch_test('ipip_batch5', 40, 50, test_type='IPIP')
 elif bfi_batch1:
-    _, bfi_df = run_batch_test('bfi_batch1', 0, 10, test_type='BFI')
+    _, bfi_df = run_batch_test('bfi_batch1', 0, 9, test_type='BFI')
 elif bfi_batch2:
-    _, bfi_df = run_batch_test('bfi_batch2', 10, 20, test_type='BFI')
+    _, bfi_df = run_batch_test('bfi_batch2', 9, 18, test_type='BFI')
 elif bfi_batch3:
-    _, bfi_df = run_batch_test('bfi_batch3', 20, 30, test_type='BFI')
+    _, bfi_df = run_batch_test('bfi_batch3', 18, 27, test_type='BFI')
 elif bfi_batch4:
-    _, bfi_df = run_batch_test('bfi_batch4', 30, 40, test_type='BFI')
+    _, bfi_df = run_batch_test('bfi_batch4', 27, 36, test_type='BFI')
 elif bfi_batch5:
-    _, bfi_df = run_batch_test('bfi_batch5', 40, 50, test_type='BFI')
+    _, bfi_df = run_batch_test('bfi_batch5', 36, 44, test_type='BFI')
 
 # CSV 파일 생성 및 다운로드 부분
 if not st.session_state.accumulated_results['ipip'].empty:
