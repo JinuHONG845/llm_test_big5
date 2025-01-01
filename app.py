@@ -77,11 +77,15 @@ try:
         ipip_questions = json.load(f)
     with open('BFI.json', 'r') as f:
         bfi_questions = json.load(f)
+        # BFI 데이터 구조 확인을 위한 디버깅 출력
+        st.write("BFI 문항 수:", len(bfi_questions))
+        st.write("BFI 첫 문항:", bfi_questions[0] if bfi_questions else "No data")
 except FileNotFoundError as e:
     st.error(f"필요한 JSON 파일을 찾을 수 없습니다: {str(e)}")
     st.stop()
 except json.JSONDecodeError as e:
     st.error(f"JSON 파일 파싱 오류: {str(e)}")
+    st.write("오류가 발생한 파일 내용을 확인해주세요.")
     st.stop()
 
 # LLM 선택 및 설정 부분을 사이드바로 이동
@@ -169,7 +173,14 @@ def get_llm_response(persona, questions, test_type):
 4 = Moderately accurate
 5 = Very accurate"""
         else:  # BFI
-            question_list = [q['question'] for q in questions]
+            # BFI 질문 형식 확인
+            if isinstance(questions, list) and all(isinstance(q, dict) and 'question' in q for q in questions):
+                question_list = [q['question'] for q in questions]
+            else:
+                st.error("BFI 질문 형식이 올바르지 않습니다.")
+                st.write("BFI 질문 형식:", questions)
+                return None
+            
             scale_description = """1 = Disagree Strongly
 2 = Disagree a little
 3 = Neither agree nor disagree
