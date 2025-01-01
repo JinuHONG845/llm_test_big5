@@ -273,55 +273,54 @@ if 'accumulated_results' not in st.session_state:
         'completed_batches': set()
     }
 
-if test_mode == "전체 테스트 (분할 실행)":
-    # IPIP 테스트 섹션
-    st.write("### IPIP 페르소나 배치 선택")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        ipip_batch1 = st.button("IPIP 1-10번", 
-                          disabled='ipip_batch1' in st.session_state.accumulated_results['completed_batches'])
-    with col2:
-        ipip_batch2 = st.button("IPIP 11-20번", 
-                          disabled='ipip_batch2' in st.session_state.accumulated_results['completed_batches'])
-    with col3:
-        ipip_batch3 = st.button("IPIP 21-30번", 
-                          disabled='ipip_batch3' in st.session_state.accumulated_results['completed_batches'])
-    with col4:
-        ipip_batch4 = st.button("IPIP 31-40번", 
-                          disabled='ipip_batch4' in st.session_state.accumulated_results['completed_batches'])
-    with col5:
-        ipip_batch5 = st.button("IPIP 41-50번", 
-                          disabled='ipip_batch5' in st.session_state.accumulated_results['completed_batches'])
+# IPIP 테스트 섹션 (test_mode 조건 제거)
+st.write("### IPIP 페르소나 배치 선택")
+col1, col2, col3, col4, col5 = st.columns(5)
 
-    # BFI 테스트 섹션
-    st.write("### BFI 페르소나 배치 선택")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        bfi_batch1 = st.button("BFI 1-10번", 
-                          disabled='bfi_batch1' in st.session_state.accumulated_results['completed_batches'])
-    with col2:
-        bfi_batch2 = st.button("BFI 11-20번", 
-                          disabled='bfi_batch2' in st.session_state.accumulated_results['completed_batches'])
-    with col3:
-        bfi_batch3 = st.button("BFI 21-30번", 
-                          disabled='bfi_batch3' in st.session_state.accumulated_results['completed_batches'])
-    with col4:
-        bfi_batch4 = st.button("BFI 31-40번", 
-                          disabled='bfi_batch4' in st.session_state.accumulated_results['completed_batches'])
-    with col5:
-        bfi_batch5 = st.button("BFI 41-50번", 
-                          disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
+with col1:
+    ipip_batch1 = st.button("IPIP 1-10번", 
+                      disabled='ipip_batch1' in st.session_state.accumulated_results['completed_batches'])
+with col2:
+    ipip_batch2 = st.button("IPIP 11-20번", 
+                      disabled='ipip_batch2' in st.session_state.accumulated_results['completed_batches'])
+with col3:
+    ipip_batch3 = st.button("IPIP 21-30번", 
+                      disabled='ipip_batch3' in st.session_state.accumulated_results['completed_batches'])
+with col4:
+    ipip_batch4 = st.button("IPIP 31-40번", 
+                      disabled='ipip_batch4' in st.session_state.accumulated_results['completed_batches'])
+with col5:
+    ipip_batch5 = st.button("IPIP 41-50번", 
+                      disabled='ipip_batch5' in st.session_state.accumulated_results['completed_batches'])
 
-    # 초기화 버튼
-    if st.button("테스트 초기화"):
-        st.session_state.accumulated_results = {
-            'ipip': pd.DataFrame(),
-            'bfi': pd.DataFrame(),
-            'completed_batches': set()
-        }
-        st.rerun()
+# BFI 테스트 섹션
+st.write("### BFI 페르소나 배치 선택")
+col1, col2, col3, col4, col5 = st.columns(5)
+
+with col1:
+    bfi_batch1 = st.button("BFI 1-10번", 
+                      disabled='bfi_batch1' in st.session_state.accumulated_results['completed_batches'])
+with col2:
+    bfi_batch2 = st.button("BFI 11-20번", 
+                      disabled='bfi_batch2' in st.session_state.accumulated_results['completed_batches'])
+with col3:
+    bfi_batch3 = st.button("BFI 21-30번", 
+                      disabled='bfi_batch3' in st.session_state.accumulated_results['completed_batches'])
+with col4:
+    bfi_batch4 = st.button("BFI 31-40번", 
+                      disabled='bfi_batch4' in st.session_state.accumulated_results['completed_batches'])
+with col5:
+    bfi_batch5 = st.button("BFI 41-50번", 
+                      disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
+
+# 초기화 버튼
+if st.button("테스트 초기화"):
+    st.session_state.accumulated_results = {
+        'ipip': pd.DataFrame(),
+        'bfi': pd.DataFrame(),
+        'completed_batches': set()
+    }
+    st.rerun()
 
 def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
     ipip_batch_size, bfi_batch_size = get_batch_size(model_choice)
@@ -478,7 +477,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
 
     return ipip_df, bfi_df
 
-# 배치 버튼 클릭 처리 (test_mode 조건 제거)
+# 배치 버튼 클릭 처리
 if ipip_batch1:
     ipip_df, _ = run_batch_test('ipip_batch1', 0, 10, test_type='IPIP')
 elif ipip_batch2:
