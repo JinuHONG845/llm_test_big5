@@ -343,15 +343,16 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
     
     if test_mode == "페르소나 테스트":
         batch_personas = personas[start_idx:end_idx]
+        index_prefix = "Persona"
     else:  # 대조군 테스트
-        # 대조군 테스트를 위한 더미 페르소나 생성
         batch_personas = [{"personality": ["AI Baseline Test"]} for _ in range(end_idx - start_idx)]
+        index_prefix = "Dummy"
 
     # DataFrame 초기화 또는 기존 결과 불러오기
     if st.session_state.accumulated_results['ipip'].empty:
         ipip_df = pd.DataFrame(
             np.nan, 
-            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
+            index=[f"{index_prefix} {i+1}" for i in range(len(personas))] + ['Average'],
             columns=[f"Q{i+1}" for i in range(300)]
         )
     else:
@@ -360,7 +361,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
     if st.session_state.accumulated_results['bfi'].empty:
         bfi_df = pd.DataFrame(
             np.nan, 
-            index=[f"Persona {i+1}" for i in range(len(personas))] + ['Average'],
+            index=[f"{index_prefix} {i+1}" for i in range(len(personas))] + ['Average'],
             columns=[f"Q{i+1}" for i in range(44)]
         )
     else:
