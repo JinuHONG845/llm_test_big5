@@ -16,8 +16,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# 전역 변수로 test_mode 설정
-test_mode = "전체 테스트 (분할 실행)"  # 기본값 설정
+# 전역 변수로 test_mode 설정 제거
+# test_mode = "전체 테스트 (분할 실행)"  # 이 줄 삭제
 
 # 여백 줄정을 위한 CSS
 st.markdown("""
@@ -115,10 +115,6 @@ with st.sidebar:
             horizontal=True,
             help="현재 Gemini Pro 모델만 사용 가능합니다."
         )
-
-def select_test_mode():
-    print("\n전체 테스트를 시작합니다.")
-    return "전체 테스트 (분할 실행)"  # 문자열 값을 정확히 맞춤
 
 # API 키 설정
 if llm_choice == "GPT":
@@ -504,11 +500,6 @@ if test_mode == "전체 테스트 (분할 실행)":
         _, bfi_df = run_batch_test('bfi_batch4', 30, 40, test_type='BFI')
     elif bfi_batch5:
         _, bfi_df = run_batch_test('bfi_batch5', 40, 50, test_type='BFI')
-elif test_mode == "간이 테스트 (랜덤 3개 페르소나)":
-    # 랜덤 페르소나 선택
-    random_personas = random.sample(personas, 3)
-    # 간이 테스트 로직 실행
-    # ... (기존 간이 테스트 코드) ...
 
 # CSV 파일 생성 및 다운로드 부분
 if not st.session_state.accumulated_results['ipip'].empty:
