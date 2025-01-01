@@ -314,19 +314,19 @@ st.write("### BFI 페르소나 배치 선택")
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    bfi_batch1 = st.button("BFI 1-9번", 
+    bfi_batch1 = st.button("BFI Dummy 1-9", 
                       disabled='bfi_batch1' in st.session_state.accumulated_results['completed_batches'])
 with col2:
-    bfi_batch2 = st.button("BFI 10-18번", 
+    bfi_batch2 = st.button("BFI Dummy 10-18", 
                       disabled='bfi_batch2' in st.session_state.accumulated_results['completed_batches'])
 with col3:
-    bfi_batch3 = st.button("BFI 19-27번", 
+    bfi_batch3 = st.button("BFI Dummy 19-27", 
                       disabled='bfi_batch3' in st.session_state.accumulated_results['completed_batches'])
 with col4:
-    bfi_batch4 = st.button("BFI 28-36번", 
+    bfi_batch4 = st.button("BFI Dummy 28-36", 
                       disabled='bfi_batch4' in st.session_state.accumulated_results['completed_batches'])
 with col5:
-    bfi_batch5 = st.button("BFI 37-44번", 
+    bfi_batch5 = st.button("BFI Dummy 37-44", 
                       disabled='bfi_batch5' in st.session_state.accumulated_results['completed_batches'])
 
 # 초기화 버튼
@@ -439,7 +439,7 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
         # BFI 테스트 실행
         for i, persona in enumerate(batch_personas, start=start_idx):
             all_bfi_scores = []
-            # BFI 테스트 (0부터 44까지)
+            # 각 페르소나/더미에 대해 전체 44개 문항 처리
             for j in range(0, 44, bfi_batch_size):
                 try:
                     batch_end = min(j + bfi_batch_size, 44)
@@ -451,47 +451,26 @@ def run_batch_test(batch_name, start_idx, end_idx, test_type='IPIP'):
                         all_bfi_scores.extend(scores)
                         
                         current_scores = bfi_df.iloc[i].copy()
-                        current_scores[j:j+len(scores)] = scores
+                        current_scores[j:batch_end] = scores
                         bfi_df.iloc[i] = current_scores
                         bfi_df.loc['Average'] = bfi_df.iloc[:-1].mean()
                         
-                        # 진행 상황 업데이트
-                        progress = min(1.0, ((i - start_idx) * 44 + j + len(scores)) / (len(batch_personas) * 44))
+                        # 진행 상황 업데이트 (현재 페르소나의 진행률)
+                        progress = min(1.0, ((i - start_idx) * 44 + len(all_bfi_scores)) / ((end_idx - start_idx) * 44))
                         progress_bar.progress(progress)
                         
                         # DataFrame 업데이트
                         result_table.dataframe(
                             bfi_df.fillna(0).round().astype(int).style
                                 .background_gradient(cmap='YlOrRd', vmin=1, vmax=5)
-                                .format("{:d}")
-                                .set_properties(**{
-                                    'width': '40px',
-                                    'text-align': 'center',
-                                    'font-size': '13px',
-                                    'border': '1px solid #e6e6e6'
-                                })
-                                .set_table_styles([
-                                    {'selector': 'th', 'props': [
-                                        ('background-color', '#f0f2f6'),
-                                        ('color', '#0e1117'),
-                                        ('font-weight', 'bold'),
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'td', 'props': [
-                                        ('text-align', 'center')
-                                    ]},
-                                    {'selector': 'table', 'props': [
-                                        ('width', '100%'),
-                                        ('margin', '0 auto')
-                                    ]}
-                                ]),
+                                .format("{:d}"),
                             use_container_width=True
                         )
                         
                         time.sleep(1)
                         
                 except Exception as e:
-                    st.error(f"BFI 테스트 오류 (페르소나 {i+1}, 문항 {j}-{batch_end}): {str(e)}")
+                    st.error(f"BFI 테스트 오류 (Dummy {i+1}, 문항 {j}-{batch_end}): {str(e)}")
                     continue
 
     # 결과 누적 저장
